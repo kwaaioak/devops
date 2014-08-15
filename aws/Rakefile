@@ -17,7 +17,7 @@ file CLOUDFORMATION_JSON => [ CLOUDFORMATION_JSON + '.erb', CONFIG ] do
 end
 
 task :upload_recipes do
-  sh %{ ( cd ../ && rm -rf cookbooks && berks vendor cookbooks && tar -cf aws/cookbooks.tar.gz cookbooks ) }
+  sh %{ ( rm -rf cookbooks && BERKSHELF_PATH=cookbooks berks vendor -b ../Berksfile cookbooks && tar -cf cookbooks.tar.gz cookbooks ) }
   sh %{knife s3 --config=} + @knife_config + %{ upload --public -b } + @devops_bucket + %{ -f cookbooks.tar.gz}
 end
 
