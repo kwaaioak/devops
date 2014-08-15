@@ -1,0 +1,6 @@
+# The deconfiguring-networking bit stops the network from going down until we are done here.
+start on runlevel [016] or deconfiguring-networking
+
+task
+
+exec mysqldump --force --single-transaction --all-databases --opt --user=<%= @mysql_user %> --password=<%= @mysql_password %> 2>><%= @log_file %> | gzip > <%= @backup_file %> 2>><%= @log_file %>

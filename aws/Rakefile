@@ -1,0 +1,42 @@
+require 'erb'
+
+CLOUDFORMATION_JSON='cloudformation.json'
+CONFIG='config.rb'
+CONFIG_LOCAL='config.local.rb'
+
+load CONFIG
+load CONFIG_LOCAL if File.exist?(CONFIG_LOCAL)
+
+task :default => :up
+
+desc "Builds the AWS CloudFormation config"
+file CLOUDFORMATION_JSON => [ CLOUDFORMATION_JSON + '.erb', CONFIG ] do 
+    File.open(CLOUDFORMATION_JSON, 'w+') do |f|
+        f.write(ERB.new(File.read(CLOUDFORMATION_JSON + '.erb')).result())
+    end
+end
+
+task :upload_recipes do
+  sh %{ ( cd ../ && rm -rf cookbooks && berks vendor cookbooks && tar -cvf aws/cookbooks.tar.gz cookbooks ) }
+  sh %{knife s3 --config=} + @knife_config + %{ upload --public -b } + @devops_bucket + %{ -f cookbooks.tar.gz}
+end
+
+task :up => [ CLOUDFORMATION_JSON, :upload_recipes ] do
+  sh %{knife s3 --config=} + @knife_config + %{ upload --public -b } + @devops_bucket + %{ -f } + CLOUDFORMATION_JSON
+
+  params = {
+    :'RecipeURL' => 'https://s3-us-west-1.amazonaws.com/kwaaioak-devops/operations-server.tar.gz',
+    :'KeyName' => @key_name,
+    :'AvailabilityZone' => @availability_zone,
+    :'ZoneName' => @stack_name + '.' + @domain_root,
+#    :'SnapshotId' => '"' + @snapshot + '"',
+    :'Debug' => @debug
+  }.map{|k,v| "#{k}=#{v}"}.join(';')
+
+  sh %{knife cfn --config=} + @knife_config + %{ create } + @stack_name + %{ --capabilities CAPABILITY_IAM } + %{ -f } + CLOUDFORMATION_JSON + %{ --parameters '} + params + %{'}
+end
+
+
+task :validate => [ CLOUDFORMATION_JSON ] do
+  sh %{knife cfn --config=} + @knife_config + %{ validate -f } + CLOUDFORMATION_JSON
+end

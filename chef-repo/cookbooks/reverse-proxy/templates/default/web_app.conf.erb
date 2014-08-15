@@ -1,0 +1,22 @@
+<VirtualHost *:80>
+    ServerName <%= @params[:server_name] %>
+    <Proxy *>
+        Order deny,allow
+        Allow from all
+        Require all granted
+    </Proxy>
+
+    ProxyRequests           Off
+    ProxyPreserveHost       On
+    ProxyPass               /       http://127.0.0.1:<%= @params[:server_port] %>/ connectiontimeout=5 timeout=300
+    ProxyPassReverse        /       http://127.0.0.1:<%= @params[:server_port] %>/
+    <Location />
+        Order allow,deny
+        Allow from all
+    </Location>
+
+    ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
+    CustomLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-access.log combined
+
+    LogLevel warn
+</VirtualHost>

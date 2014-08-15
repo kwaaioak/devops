@@ -1,0 +1,103 @@
+#
+# Cookbook Name:: stash
+# Recipe:: default
+#
+# Copyright 2014 Kwaai Oak, Inc.
+#
+# All rights reserved - Do Not Redistribute
+#
+
+include_recipe 'java'
+include_recipe 'git'
+
+# Workaround for
+# /usr/lib/ruby/1.9.1/rubygems/custom_require.rb:36:in `require': cannot load such file -- mkmf (LoadError)
+if platform_family?('debian')
+    package "ruby-dev" do
+        action :install
+    end
+end
+
+#
+# Database configuration
+#
+include_recipe "database::mysql"
+
+mysql_admin_connection_info = {
+  :host     => node['stash']['mysql']['host'],
+  :username => node['stash']['mysql']['admin_username'],
+  :password => node['stash']['mysql']['admin_password']
+}
+
+mysql_database node['stash']['mysql']['dbname'] do
+  connection mysql_admin_connection_info
+  collation 'utf8_bin'
+  encoding 'utf8'
+  action :create
+end
+
+mysql_database_user node['stash']['mysql']['app_username'] do
+  connection    mysql_admin_connection_info
+  password      node['stash']['mysql']['app_password']
+  database_name node['stash']['mysql']['dbname']
+  host          'localhost'
+  privileges    [:all]
+  action        :grant
+end
+
+#
+# Stash application configuration
+#
+directory node['stash']['home'] do
+  owner "root"
+  group "root"
+  mode 0750
+  action :create
+end
+
+template "#{node['stash']['home']}/stash-config.properties" do
+	source "stash-config.properties.erb"
+	mode 0664
+	variables({
+    	:db_name => node['stash']['mysql']['dbname'],
+    	:db_username => node['stash']['mysql']['app_username'],
+    	:db_password => node['stash']['mysql']['app_password'],
+	})
+end
+
+ark 'stash' do
+    url "http://www.atlassian.com/software/stash/downloads/binary/atlassian-stash-#{node['stash']['revision']}.tar.gz"
+end
+
+## Configure maximum and minimum memory
+## sed -i 's!\(JVM_MINIMUM_MEMORY="\).*\(m"\)!\1'$STASH_MINIMUM_MEMORY'\2!g' /opt/atlassian/stash/bin/setenv.sh
+## sed -i 's!\(JVM_MAXIMUM_MEMORY="\).*\(m"\)!\1'$STASH_MAXIMUM_MEMORY'\2!g' /opt/atlassian/stash/bin/setenv.sh
+
+ark 'mysql-connector' do
+    url 'http://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.30.tar.gz'
+    #path '/usr/local/stash/lib'
+    #creates 'mysql-connector-java-5.1.30/mysql-connector-java-5.1.30-bin.jar'
+    #action :cherry_pick
+end
+link "/usr/local/stash/lib/mysql-connector-java-5.1.30-bin.jar" do
+    to "/usr/local/mysql-connector/mysql-connector-java-5.1.30-bin.jar"
+end
+
+#
+# Daemon/service configuration
+#
+
+template "/etc/init.d/stash" do
+	source "stash.initd.erb"
+	mode 0755
+	variables({
+    	:install_dir => "#{node['ark']['prefix_root']}/stash",
+    	:home_dir    => node['stash']['home']
+	})
+end
+
+service 'stash' do
+  supports :start => true, :stop => true, :restart => true
+  init_command "/etc/init.d/stash"
+  action [ :enable, :start ]
+end

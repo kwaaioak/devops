@@ -1,0 +1,9 @@
+default['storage']['mount_path']              = '/mnt/storage'
+default['storage']['dirs']                     = nil
+default['storage']['mount_type']               = nil
+default['storage']['mount_device']             = '/dev/xvdi'
+default['storage']['description']              = nil
+default['storage']['aws']['access_key']        = nil
+default['storage']['aws']['secret_access_key'] = nil
+default['storage']['aws']['volume_id']         = nil
+default['storage']['backup']['schedule']       = '0 11 * * *'

@@ -1,0 +1,27 @@
+<IfModule mod_ssl.c>
+<VirtualHost _default_:443>
+    ServerAdmin webmaster@localhost
+
+    DocumentRoot /var/www
+    <Proxy *>
+        Order deny,allow
+        Allow from all
+        Require all granted
+    </Proxy>
+
+    ProxyRequests           Off
+    ProxyPreserveHost       On
+    <Location />
+        ProxyPass               http://127.0.0.1:80/
+        Order allow,deny
+        Allow from all
+    </Location>
+
+    RequestHeader set X-Forwarded-Proto "https"
+
+    SSLEngine on
+    SSLCertificateFile      /etc/ssl/certs/ssl-cert-snakeoil.pem
+    SSLCertificateKeyFile   /etc/ssl/private/ssl-cert-snakeoil.key
+    SSLCertificateChainFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+</VirtualHost>
+</IfModule>

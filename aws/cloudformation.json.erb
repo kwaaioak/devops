@@ -1,0 +1,403 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09", 
+    "Description": "<%= @description %>",
+    "Parameters": {
+        "AvailabilityZone": {
+            "Default": "us-east-1a", 
+            "Description": "Availability zone of the instances/volumes", 
+            "Type": "String"
+        }, 
+        "InstanceType": {
+            "AllowedValues": [
+                "t1.micro", 
+                "m1.small", 
+                "m3.medium", 
+                "m3.large", 
+                "m3.xlarge", 
+                "m3.2xlarge", 
+                "c3.large", 
+                "c3.xlarge", 
+                "c3.2xlarge", 
+                "c3.4xlarge", 
+                "c3.8xlarge", 
+                "r3.large", 
+                "r3.xlarge", 
+                "r3.2xlarge", 
+                "r3.4xlarge", 
+                "r3.8xlarge", 
+                "g2.2xlarge", 
+                "i2.xlarge", 
+                "i2.2xlarge", 
+                "i2.4xlarge", 
+                "i2.8xlarge", 
+                "hs1.8xlarge"
+            ], 
+            "ConstraintDescription": "must contain only alphanumeric characters.", 
+            "Default": "m3.large", 
+            "Description": "Type of EC2 instance for web server", 
+            "Type": "String"
+        }, 
+        "KeyName": {
+            "Description": "Name of an existing EC2 KeyPair to enable SSH access to the web server", 
+            "Type": "String"
+        }, 
+        "RecipeURL": {
+            "Description": "The location of the recipe tarball", 
+            "Type": "String"
+        }, 
+        "SnapshotId": {
+            "Default": "", 
+            "Description": "An existing snapshot to initialize storage with (use for data recovery)", 
+            "Type": "String"
+        }, 
+        "Debug": {
+            "Default": "", 
+            "Description": "If not empty, turn on debugging (and increase timeout to max values)", 
+            "Type": "String"
+        }, 
+        "ZoneName": {
+            "Description": "The hosted zone used for DNS updates (this must be created manually)", 
+            "Type": "String"
+        }
+    }, 
+    "Conditions": {
+        "CreateFromSnapshot": {
+            "Fn::Not" : [{ "Fn::Equals": [ { "Ref": "SnapshotId" }, "" ] }]
+        },
+        "Debug": {
+            "Fn::Not" : [{ "Fn::Equals": [ { "Ref": "Debug" }, "" ] }]
+        }
+    },
+    "Resources": {
+        "HostKeys": {
+            "Type": "AWS::IAM::AccessKey",
+            "Properties": {
+                "UserName": { "Ref": "DevOpsServerUser" }
+            }
+        },
+        "DevOpsServerSecurityGroup": {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" :
+            {
+                "GroupDescription" : "<%= @description %>", 
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : "22",
+                        "ToPort" : "22",
+                        "CidrIp" : "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : "80",
+                        "ToPort" : "80",
+                        "CidrIp" : "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : "443",
+                        "ToPort" : "443",
+                        "CidrIp" : "0.0.0.0/0"
+                    }
+                ]
+            }
+        },
+        "DevOpsServer": {
+            "Type": "AWS::EC2::Instance",
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "config": {
+                        "files": {
+                            "/etc/chef/node.json": {
+                                "content": { "Fn::Join": [ "\n", [
+                                    "{", 
+                                    "  \"apache\": {", 
+                                    "    \"listen_ports\": [", 
+                                    "      \"80\",", 
+                                    "      \"8081\"", 
+                                    "    ],", 
+                                    "    \"package\": \"apache2-mpm-prefork\",", 
+                                    "    \"version\": \"2.4\"", 
+                                    "  },", 
+                                    "  \"java\": {", 
+                                    "    \"jdk_version\": \"7\"", 
+                                    "  },", 
+                                    "  \"jenkins\": {", 
+                                    "    \"master\": {", 
+                                    "      \"install_method\": \"package\",", 
+                                    "      \"port\": \"8090\"", 
+                                    "    }", 
+                                    "  },", 
+                                    "  \"jira\": {", 
+                                    { "Fn::Join": [ "", [
+                                        "    \"node_name\": ",
+                                        "\"jira.", { "Ref": "ZoneName" }, "\""
+                                    ] ] }, 
+                                    "  },", 
+                                    "  \"mysql\": {", 
+                                    "    \"allow_remote_root\": true,", 
+                                    "    \"bind_address\": \"0.0.0.0\",", 
+                                    "    \"data_dir\": \"/var/lib/mysql\",", 
+                                    "    \"root_network_acl\": [", 
+                                    "      \"0.0.0.0/32\"", 
+                                    "    ],", 
+                                    "    \"server_debian_password\": \"password\",", 
+                                    "    \"server_repl_password\": \"password\",", 
+                                    "    \"server_root_password\": \"password\",", 
+                                    "    \"template_source\": \"my.cnf.erb\"", 
+                                    "  },", 
+                                    "  \"run_list\": [", 
+                                    "    \"recipe[apt]\",", 
+                                    "    \"recipe[storage]\",", 
+                                    "    \"recipe[mysql::server]\",", 
+                                    "    \"recipe[apache2]\",", 
+                                    "    \"recipe[jira]\",", 
+                                    "    \"recipe[stash]\",", 
+                                    "    \"recipe[jenkins::master]\",", 
+                                    "    \"recipe[reverse-proxy]\"",
+                                    "  ],", 
+                                    "  \"stash\": {", 
+                                    "    \"home\": \"/mnt/storage/stash\",", 
+                                    { "Fn::Join": [ "", [
+                                    "    \"node_name\": ",
+                                    "\"stash.", { "Ref": "ZoneName" }, "\""
+                                    ] ] }, 
+                                    "  },", 
+                                    "  \"storage\": {", 
+                                    "    \"dirs\": [", 
+                                    "      \"/var/lib/mysql\",", 
+                                    "      \"/var/lib/stash\",", 
+                                    "      \"/var/lib/git\",", 
+                                    "      \"/var/lib/jenkins\",", 
+                                    "      \"/var/lib/jira\"", 
+                                    "    ],", 
+                                    "    \"mount_type\": \"aws_ebs\",", 
+                                    { "Fn::Join": [ "", [
+                                        "    \"description\": \"<%= @description %>\","
+                                    ] ] }, 
+                                        "    \"aws\": {", 
+                                    { "Fn::Join": [ "", [
+                                        "        \"access_key\": ",
+                                        "\"", { "Ref": "HostKeys" }, "\","
+                                    ] ] }, 
+                                    { "Fn::Join": [ "", [
+                                        "        \"secret_access_key\": ",
+                                        "\"", { "Fn::GetAtt": [ "HostKeys", "SecretAccessKey" ] }, "\","
+                                    ] ] }, 
+                                    { "Fn::Join": [ "", [
+                                        "        \"volume_id\": ",
+                                        "\"",  { "Ref": "DevOpsServerVolume" }, "\""
+                                    ] ] }, 
+                                    "    }", 
+                                    "  },",
+                                    "  \"chef-server\": {",
+                                    "    \"version\": \"11.1.0\",",
+                                    "    \"configuration\": {",
+                                    "      \"nginx\": {",
+                                    "        \"enable_non_ssl\": true,",
+                                    "        \"non_ssl_port\": \"8083\",",
+                                    "        \"ssl_port\": \"4433\"",
+                                    "      } ",
+                                    "    }",
+                                    "  },",
+                                    "  \"reverse-proxy\": {",
+                                    "    \"apps\": {",
+                                    "        \"jenkins\": {",
+                                    { "Fn::Join": [ "", [
+                                        "            \"node_name\": \"jenkins.", { "Ref": "ZoneName" }, "\","
+                                    ] ] },
+                                    "            \"port\": 8090",
+                                    "        },",
+                                    "        \"chef\": {",
+                                    { "Fn::Join": [ "", [
+                                        "            \"node_name\": \"chef.", { "Ref": "ZoneName" }, "\","
+                                    ] ] }, 
+                                    "            \"port\": 8083",
+                                    "        },",
+                                    "        \"jira\": {",
+                                    { "Fn::Join": [ "", [
+                                        "            \"node_name\": \"jira.", { "Ref": "ZoneName" }, "\","
+                                    ] ] }, 
+                                    "            \"port\": 8080",
+                                    "        },",
+                                    "        \"stash\": {",
+                                    { "Fn::Join": [ "", [
+                                        "            \"node_name\": \"stash.", { "Ref": "ZoneName" }, "\","
+                                    ] ] }, 
+                                    "            \"port\": 7990",
+                                    "        }",
+                                    "    }",
+                                    "}"
+                                ] ] }, 
+                                "group": "root", 
+                                "mode": "0644", 
+                                "owner": "root"
+                            }, 
+                            "/etc/chef/solo.rb": {
+                                "content": { "Fn::Join": [ "", [
+                                    { "Fn::If": [ "Debug", "log_level :debug\n", "" ] },
+                                    "log_location \"/var/log/chef-solo.log\"\n", 
+                                    "file_cache_path \"/var/lib/chef-solo\"\n", 
+                                    "cookbook_path \"/var/lib/chef-solo/cookbooks\"\n", 
+                                    "json_attribs \"/etc/chef/node.json\"\n", 
+                                    "recipe_url ",
+                                    "\"", { "Ref": "RecipeURL" }, "\"\n"
+                                ] ] }, 
+                                "group": "root", 
+                                "mode": "0644", 
+                                "owner": "root"
+                            }
+                        }, 
+                        "packages": {
+                            "apt": {
+                                "chef": []
+                            }
+                        }
+                    }
+                }
+            }, 
+            "Properties": {
+                "AvailabilityZone": { "Ref": "AvailabilityZone" }, 
+                "ImageId": "<%= @image_id %>", 
+                "InstanceType": { "Ref": "InstanceType" }, 
+                "KeyName": { "Ref": "KeyName" }, 
+                "SecurityGroups": [
+                    { "Ref": "DevOpsServerSecurityGroup" }
+                ], 
+                "UserData": {
+                    "Fn::Base64": { "Fn::Join": [ "", [
+                        "#!/bin/bash -ex\n", 
+                        "apt-get update\n", 
+                        "apt-get -y install python-setuptools\n", 
+                        "wget -P /root https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz", 
+                        "\n", 
+                        "mkdir -p /root/aws-cfn-bootstrap-latest", 
+                        "\n", 
+                        "tar xvfz /root/aws-cfn-bootstrap-latest.tar.gz --strip-components=1 -C /root/aws-cfn-bootstrap-latest", 
+                        "\n", 
+                        "easy_install /root/aws-cfn-bootstrap-latest/", 
+                        "\n", 
+                        "cfn-init -s ", { "Ref": "AWS::StackName" }, 
+                        " -r DevOpsServer ", 
+                        "         --access-key ", { "Ref": "HostKeys" }, 
+                        "         --secret-key ", { "Fn::GetAtt": [ "HostKeys", "SecretAccessKey" ] }, 
+                        "         --region ", { "Ref": "AWS::Region" }, 
+                        " || error_exit 'Failed to run cfn-init' &&\n", 
+                        "chef-solo &&\n",
+                        "cfn-signal -e $? '", { "Ref": "DevOpsServerWaitHandle" }, "' &&\n",
+                        "cfn-hup || error_exit 'Failed to start cfn-hup'\n"
+                    ] ] }
+                }
+            }
+        }, 
+        "DevOpsServerDNS": {
+            "Type": "AWS::Route53::RecordSetGroup",
+            "Properties": {
+                "Comment": { "Ref": "AWS::StackName" }, 
+                "HostedZoneName": { "Fn::Join": [ "", [ { "Ref": "ZoneName" }, "." ] ] }, 
+                "RecordSets": [
+                    {
+                        "Name": { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }, 
+                        "ResourceRecords": [
+                            { "Fn::GetAtt": [ "DevOpsServer", "PublicIp" ] }
+                        ], 
+                        "TTL": "60", 
+                        "Type": "A"
+                    }, 
+                    {
+                        "Name": { "Fn::Join": [ "", [ "jira.", { "Ref": "ZoneName" }, "." ] ] }, 
+                        "ResourceRecords": [
+                            { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }
+                        ], 
+                        "TTL": "900", 
+                        "Type": "CNAME"
+                    }, 
+                    {
+                        "Name": { "Fn::Join": [ "", [ "stash.", { "Ref": "ZoneName" }, "." ] ] }, 
+                        "ResourceRecords": [
+                            { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }
+                        ], 
+                        "TTL": "900", 
+                        "Type": "CNAME"
+                    }, 
+                    {
+                        "Name": { "Fn::Join": [ "", [ "jenkins.", { "Ref": "ZoneName" }, "." ]] }, 
+                        "ResourceRecords": [
+                            { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }
+                        ], 
+                        "TTL": "900", 
+                        "Type": "CNAME"
+                    },
+                    {
+                        "Name": { "Fn::Join": [ "", [ "chef.", { "Ref": "ZoneName" }, "." ]] }, 
+                        "ResourceRecords": [
+                            { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }
+                        ], 
+                        "TTL": "900", 
+                        "Type": "CNAME"
+                    }
+                ]
+            }
+        }, 
+        "DevOpsServerUser": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Path": "/", 
+                "Policies": [
+                    {
+                        "PolicyName": "cloudformation",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Action": "cloudformation:DescribeStackResource", 
+                                    "Effect": "Allow", 
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }, 
+                    {
+                        "PolicyName": "ec2",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Action": [ "ec2:*" ], 
+                                    "Effect": "Allow", 
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }, 
+        "DevOpsServerVolume": {
+            "DeletionPolicy": "Snapshot",
+            "Properties": {
+                "AvailabilityZone": { "Ref": "AvailabilityZone" }, 
+                "Iops": 100, 
+                "Size": 15, 
+                "SnapshotId": {
+                    "Fn::If": [
+                        "CreateFromSnapshot",
+                        { "Ref": "SnapshotId" },
+                        { "Ref": "AWS::NoValue" }
+                    ]
+                },
+                "VolumeType": "io1"
+            }, 
+            "Type": "AWS::EC2::Volume"
+        }, 
+        "DevOpsServerWaitForInstance": {
+            "Type": "AWS::CloudFormation::WaitCondition",
+            "DependsOn": "DevOpsServer", 
+            "Properties": {
+                "Handle": { "Ref": "DevOpsServerWaitHandle" }, 
+                "Timeout": { "Fn::If": [ "Debug", "43200", "3600" ] }
+            }
+        }, 
+        "DevOpsServerWaitHandle": {
+            "Type": "AWS::CloudFormation::WaitConditionHandle"
+        }
+    }
+}

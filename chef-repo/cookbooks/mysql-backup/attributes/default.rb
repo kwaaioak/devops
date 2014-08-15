@@ -1,0 +1,5 @@
+default['mysql-backup']['data_dir']              = '/var/lib/mysql-backup'
+default['mysql-backup']['backup_file']           = '/var/lib/mysql-backup.sql.gz'
+default['mysql-backup']['schedule']              = '5/* * * * *'
+default['mysql-backup']['mysql_user']            = 'root'
+default['mysql-backup']['mysql_password']        = 'password'

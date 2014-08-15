@@ -1,0 +1,25 @@
+#!/bin/bash
+
+RUNUSER="<%= @run_user %>"
+JIRA_INSTALLDIR="<%= @install_dir %>"
+
+run_as_user() {
+    if [ "$RUNUSER" != "$USER" ]; then
+        su - "$RUNUSER" -s "/bin/bash" -c "$1"
+    else
+        $1
+    fi
+}
+
+case "$1" in
+    start)
+        run_as_user "$JIRA_INSTALLDIR/bin/start-jira.sh"
+        ;;
+    stop)
+        run_as_user "$JIRA_INSTALLDIR/bin/stop-jira.sh"
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac

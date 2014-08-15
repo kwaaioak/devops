@@ -1,0 +1,11 @@
+name             "mysql-backup"
+maintainer       "Kwaai Oak, Inc."
+maintainer_email "darren@kwaaioak.com"
+license          "All rights reserved"
+description      "Installs/configures a simple backup/restore strategy for MySQL"
+long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
+version          "0.1.0"
+recipe           "mysql-backup", "Configures mysql-backup"
+recipe           "mysql-backup::restore", "Restores MySQL from a backup file"
+supports         "debian"
+depends          "mysql"
