@@ -49,6 +49,8 @@ Creating a Dev/Ops Server on Amazon
 * Make sure you have the following settings in your knife.rb
     knife[:aws_access_key_id]
     knife[:aws_secret_access_key]
+    knife[:region]
+* Create a Key Pair in the region you'll be using
 * You need to create a Route53 zone (this cannot be automated) called @stack_name.@domain_root
 * Finally, run the following
     $ sudo gem install bundler
