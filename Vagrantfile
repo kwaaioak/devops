@@ -18,6 +18,7 @@ Vagrant.configure("2") do |config|
   config.nfs.map_gid=0
   config.vm.synced_folder "./cache/apt/archives", "/var/cache/apt/archives", type: "nfs", nfs: true
   config.vm.synced_folder "./cache/install", "/var/cache/install", type: "nfs", nfs: true
+  config.vm.synced_folder "./cache/chef", "/var/chef/cache", type: "nfs", nfs: true
   config.vm.synced_folder "./storage", "/mnt/storage", type: "nfs", nfs: true, map_uid: 0, map_gid: 0
 #  config.vm.synced_folder "./../", "/kwaaioak-ops", type: "nfs", nfs: true
 
@@ -97,7 +98,6 @@ Vagrant.configure("2") do |config|
         }
       },
       :'chef-server' => {
-        :version                => :latest,
         :configuration => {
           :nginx => {
             :non_ssl_port       => 8083,
