@@ -29,7 +29,7 @@ task :up => [ CLOUDFORMATION_JSON, :upload_recipes ] do
     :'KeyName' => @key_name,
     :'AvailabilityZone' => @availability_zone,
     :'ZoneName' => @stack_name + '.' + @domain_root,
-#    :'SnapshotId' => '"' + @snapshot + '"',
+    :'SnapshotId' => @snapshot,
     :'Debug' => @debug
   }.map{|k,v| "#{k}=#{v}"}.join(';')
 
