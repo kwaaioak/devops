@@ -17,7 +17,7 @@ file CLOUDFORMATION_JSON => [ CLOUDFORMATION_JSON + '.erb', CONFIG ] do
 end
 
 task :upload_recipes do
-  sh %{ ( cd ../ && rm -rf cookbooks && berks vendor cookbooks && tar -cvf aws/cookbooks.tar.gz cookbooks ) }
+  sh %{ ( cd ../ && rm -rf cookbooks && berks vendor cookbooks && tar -cf aws/cookbooks.tar.gz cookbooks ) }
   sh %{knife s3 --config=} + @knife_config + %{ upload --public -b } + @devops_bucket + %{ -f cookbooks.tar.gz}
 end
 
@@ -36,7 +36,14 @@ task :up => [ CLOUDFORMATION_JSON, :upload_recipes ] do
   sh %{knife cfn --config=} + @knife_config + %{ create } + @stack_name + %{ --capabilities CAPABILITY_IAM } + %{ -f } + CLOUDFORMATION_JSON + %{ --parameters '} + params + %{'}
 end
 
+task :destroy do
+    sh %{knife cfn --config=} + @knife_config + %{ delete } + @stack_name
+end
 
 task :validate => [ CLOUDFORMATION_JSON ] do
   sh %{knife cfn --config=} + @knife_config + %{ validate -f } + CLOUDFORMATION_JSON
+end
+
+task :ssh do
+  sh %{ ssh -o StrictHostKeyChecking=no -i ~/.ssh/} + @key_name + %{.pem} + %{ ubuntu@ops.} + @stack_name + %{.} + @domain_root
 end
