@@ -31,6 +31,17 @@ if node['storage']['mount_type'] == 'aws_ebs'
     action :attach
   end
 
+  ruby_block "wait_for_ebs_volume" do
+    block do
+      timeout = 0
+      until File.blockdev?(node['storage']['mount_device']) || timeout == 1000
+        Chef::Log.debug("Device #{node['storage']['mount_device']} not ready - sleeping 10s")
+        timeout += 10
+        sleep 10
+      end
+    end
+  end
+
   execute "mkfs.xfs #{node['storage']['mount_device']}" do
     only_if "xfs_admin -l #{node['storage']['mount_device']} 2>&1 | grep -qx 'xfs_admin: #{node['storage']['mount_device']} is not a valid XFS filesystem (unexpected SB magic number 0x00000000)'"
   end
