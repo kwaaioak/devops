@@ -12,15 +12,15 @@ Vagrant.configure("2") do |config|
   config.ssh.forward_agent = true
 
   config.vm.network "private_network", ip: "10.11.12.17"
-  
+
   config.berkshelf.enabled = true
   config.nfs.map_uid=0
   config.nfs.map_gid=0
-  config.vm.synced_folder "./cache/apt/archives", "/var/cache/apt/archives", type: "nfs", nfs: true
-  config.vm.synced_folder "./cache/install", "/var/cache/install", type: "nfs", nfs: true
-  config.vm.synced_folder "./cache/chef", "/var/chef/cache", type: "nfs", nfs: true
-  config.vm.synced_folder "./storage", "/mnt/storage", type: "nfs", nfs: true, map_uid: 0, map_gid: 0
-#  config.vm.synced_folder "./../", "/kwaaioak-ops", type: "nfs", nfs: true
+  config.vm.synced_folder   "./cache/apt/archives", "/var/cache/apt/archives", type: "nfs", nfs: true
+  config.vm.synced_folder   "./cache/install", "/var/cache/install", type: "nfs", nfs: true
+  config.vm.synced_folder   "./cache/chef", "/var/chef/cache", type: "nfs", nfs: true
+  config.vm.synced_folder   "./storage", "/mnt/storage", type: "nfs", nfs: true, map_uid: 0, map_gid: 0
+  config.vm.post_up_message = "DevOps server is running - now add host entries for jira, stash, jenkins, and chef to /etc/hosts"
 
   config.vm.provision :chef_solo do |chef|
     chef.log_level = :debug
@@ -56,6 +56,9 @@ Vagrant.configure("2") do |config|
                 :node_name => 'chef.local.kwaaioak.com',
                 :port => 8083
             }
+        },
+        :ssl => {
+            :enabled => true
         }
       },
       :storage => {

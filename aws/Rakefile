@@ -22,13 +22,11 @@ task :upload_recipes do
 end
 
 task :up => [ CLOUDFORMATION_JSON, :upload_recipes ] do
-  sh %{knife s3 --config=} + @knife_config + %{ upload --public -b } + @devops_bucket + %{ -f } + CLOUDFORMATION_JSON
-
   params = {
     :'RecipeURL' => 'https://s3-us-west-1.amazonaws.com/kwaaioak-devops/operations-server.tar.gz',
     :'KeyName' => @key_name,
     :'AvailabilityZone' => @availability_zone,
-    :'ZoneName' => @stack_name + '.' + @domain_root,
+    :'ZoneName' => @domain,
     :'SnapshotId' => @snapshot,
     :'Debug' => @debug
   }.map{|k,v| "#{k}=#{v}"}.join(';')
@@ -36,8 +34,21 @@ task :up => [ CLOUDFORMATION_JSON, :upload_recipes ] do
   sh %{knife cfn --config=} + @knife_config + %{ create } + @stack_name + %{ --capabilities CAPABILITY_IAM } + %{ -f } + CLOUDFORMATION_JSON + %{ --parameters '} + params + %{'}
 end
 
+task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do
+  params = {
+    :'RecipeURL' => 'https://s3-us-west-1.amazonaws.com/kwaaioak-devops/operations-server.tar.gz',
+    :'KeyName' => @key_name,
+    :'AvailabilityZone' => @availability_zone,
+    :'ZoneName' => @domain,
+    :'SnapshotId' => @snapshot,
+    :'Debug' => @debug
+  }.map{|k,v| "#{k}=#{v}"}.join(';')
+
+  sh %{knife cfn --config=} + @knife_config + %{ update } + @stack_name + %{ --capabilities CAPABILITY_IAM } + %{ -f } + CLOUDFORMATION_JSON + %{ --parameters '} + params + %{'}
+end
+
 task :destroy do
-    sh %{knife cfn --config=} + @knife_config + %{ delete } + @stack_name
+  sh %{knife cfn --config=} + @knife_config + %{ delete } + @stack_name
 end
 
 task :validate => [ CLOUDFORMATION_JSON ] do
@@ -45,5 +56,5 @@ task :validate => [ CLOUDFORMATION_JSON ] do
 end
 
 task :ssh do
-  sh %{ ssh -o StrictHostKeyChecking=no -i ~/.ssh/} + @key_name + %{.pem} + %{ ubuntu@ops.} + @stack_name + %{.} + @domain_root
+  sh %{ ssh -o StrictHostKeyChecking=no -i ~/.ssh/} + @key_name + %{.pem} + %{ ubuntu@ops.} + @domain
 end

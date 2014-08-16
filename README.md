@@ -55,7 +55,7 @@ Creating a Dev/Ops Server on Amazon
 * Finally, run the following
     $ sudo gem install bundler
     $ sudo bundle install
-    $ (cd aws && rake )
+    $ (cd aws && rake up )
 
 =====================================
     $ berks vendor -b Berksfile chef-repo/cookbooks
