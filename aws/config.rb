@@ -1,5 +1,5 @@
 @description = "Kwaai Oak Operations Server"
-@stack_name = ""
+@stack_name = "devops"
 @domain_root = ""
 @snapshot = ""
 @debug = ""
