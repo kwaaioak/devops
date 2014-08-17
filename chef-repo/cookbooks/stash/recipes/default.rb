@@ -83,6 +83,17 @@ link "/usr/local/stash/lib/mysql-connector-java-5.1.30-bin.jar" do
     to "/usr/local/mysql-connector/mysql-connector-java-5.1.30-bin.jar"
 end
 
+# Overwrite server.xml, allowing us to support an HTTPS reverse proxy
+template "#{node['ark']['prefix_root']}/stash/conf/server.xml" do
+  source "server.xml.erb"
+  mode 0664
+  variables({
+    :node_name => node['stash']['node_name'],
+    :port      => node['stash']['port'],
+    :ssl_port  => node['stash']['ssl_port']
+  })
+end
+
 #
 # Daemon/service configuration
 #

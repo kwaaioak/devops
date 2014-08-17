@@ -114,6 +114,18 @@ execute "jira install" do
   not_if { ::File.exists?("#{node['jira']['prefix_dir']}/jira/README.txt") }
 end
 
+# Overwrite server.xml, allowing us to support an HTTPS reverse proxy
+template "#{node['jira']['prefix_dir']}/jira/conf/server.xml" do
+  source "server.xml.erb"
+  mode 0664
+  owner node['jira']['user']
+  variables({
+    :node_name => node['jira']['node_name'],
+    :port      => node['jira']['port'],
+    :ssl_port  => node['jira']['ssl_port']
+  })
+end
+
 #
 # Daemon/service configuration
 #

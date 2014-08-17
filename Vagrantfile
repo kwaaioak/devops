@@ -42,11 +42,11 @@ Vagrant.configure("2") do |config|
         :apps => {
             :jira => {
                 :node_name => 'jira.local.kwaaioak.com',
-                :port => 8080
+                :port => 8081 # SSL Reverse Proxy
             },
             :stash => {
                 :node_name => 'stash.local.kwaaioak.com',
-                :port => 7990
+                :port => 7991 # SSL Reverse Proxy
             },
             :jenkins => {
                 :node_name => 'jenkins.local.kwaaioak.com',
