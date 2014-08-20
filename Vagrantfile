@@ -67,7 +67,6 @@ Vagrant.configure("2") do |config|
       },
       :apache => {
         :version              => "2.4",
-        :package              => "apache2-mpm-prefork",
         :listen_ports         => %w[80, 8081]
       },
       :mysql  => {
