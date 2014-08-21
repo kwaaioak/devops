@@ -60,7 +60,10 @@ Vagrant.configure("2") do |config|
             }
         },
         :ssl => {
-            :enabled => true
+            :enabled => true,
+            :certificate_file => '/mnt/storage/ssl/local.kwaaioak.com/server.crt',
+            :certificate_key_file => '/mnt/storage/ssl/local.kwaaioak.com/server.key',
+            :certificate_chain_file => '/mnt/storage/ssl/local.kwaaioak.com/server.crt'
         }
       },
       :storage => {

@@ -248,7 +248,16 @@
                                     "        }",
                                     "    },",
                                     "    \"ssl\": {",
-                                    "        \"enabled\": \"true\"",
+                                    "        \"enabled\": \"true\",",
+                                    { "Fn::Join": [ "", [
+                                        "        \"certificate_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
+                                    ] ] }, 
+                                    { "Fn::Join": [ "", [
+                                        "        \"certificate_key_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.key\","
+                                    ] ] }, 
+                                    { "Fn::Join": [ "", [
+                                        "        \"certificate_chain_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\""
+                                    ] ] }, 
                                     "    }",
                                     "}"
                                 ] ] }, 
