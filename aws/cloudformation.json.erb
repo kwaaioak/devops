@@ -223,13 +223,15 @@
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"jenkins.", { "Ref": "ZoneName" }, "\","
                                     ] ] },
-                                    "            \"port\": 8090",
+                                    "            \"port\": 8090,",
+                                    "            \"force_ssl\": true",
                                     "        },",
                                     "        \"chef\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"chef.", { "Ref": "ZoneName" }, "\","
                                     ] ] }, 
-                                    "            \"port\": 8083",
+                                    "            \"port\": 8083,",
+                                    "            \"force_ssl\": true",
                                     "        },",
                                     "        \"jira\": {",
                                     { "Fn::Join": [ "", [

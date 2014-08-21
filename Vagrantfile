@@ -50,11 +50,13 @@ Vagrant.configure("2") do |config|
             },
             :jenkins => {
                 :node_name => 'jenkins.local.kwaaioak.com',
-                :port => 8090
+                :port => 8090,
+                :force_ssl => true
             },
             :chef => {
                 :node_name => 'chef.local.kwaaioak.com',
                 :port => 8083
+                :force_ssl => true
             }
         },
         :ssl => {

@@ -14,5 +14,6 @@ node['reverse-proxy']['apps'].each do |name, app|
   web_app name do
     server_name app.node_name
     server_port app.port
+    force_ssl   app.force_ssl
   end
 end
