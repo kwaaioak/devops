@@ -17,13 +17,13 @@ file CLOUDFORMATION_JSON => [ CLOUDFORMATION_JSON + '.erb', CONFIG ] do
 end
 
 task :upload_recipes do
-  sh %{ ( rm -rf cookbooks && BERKSHELF_PATH=cookbooks berks vendor -b ../Berksfile cookbooks && tar -cf cookbooks.tar.gz cookbooks ) }
+  sh %{ berks package -b ../Berksfile cookbooks.tar.gz }
   sh %{knife s3 --config=} + @knife_config + %{ upload --public -b } + @devops_bucket + %{ -f cookbooks.tar.gz}
 end
 
 task :up => [ CLOUDFORMATION_JSON, :upload_recipes ] do
   params = {
-    :'RecipeURL' => 'https://s3-us-west-1.amazonaws.com/kwaaioak-devops/operations-server.tar.gz',
+    :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
     :'KeyName' => @key_name,
     :'AvailabilityZone' => @availability_zone,
     :'ZoneName' => @domain,
@@ -36,7 +36,7 @@ end
 
 task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do
   params = {
-    :'RecipeURL' => 'https://s3-us-west-1.amazonaws.com/kwaaioak-devops/operations-server.tar.gz',
+    :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
     :'KeyName' => @key_name,
     :'AvailabilityZone' => @availability_zone,
     :'ZoneName' => @domain,
