@@ -18,20 +18,22 @@
         <Connector port="<%= @port %>" protocol="HTTP/1.1"
                    connectionTimeout="20000"
                    useBodyEncodingForURI="true"
-                   redirectPort="443"
-                   compression="on"
-                   compressableMimeType="text/html,text/xml,text/plain,text/css,application/json,application/javascript,application/x-javascript"/>
-
-        <Connector port="<%= @ssl_port %>" protocol="HTTP/1.1"
-                   connectionTimeout="20000"
-                   useBodyEncodingForURI="true"
-                   redirectPort="443"
+                   redirectPort="8443"
                    compression="on"
                    compressableMimeType="text/html,text/xml,text/plain,text/css,application/json,application/javascript,application/x-javascript"
                    proxyName="<%= @node_name %>"
                    proxyPort="443"
                    secure="true"
-                   scheme="https"/>
+                   scheme="https"
+        />
+
+        <Connector port="<%= @ssl_port %>" protocol="HTTP/1.1"
+                   connectionTimeout="20000"
+                   useBodyEncodingForURI="true"
+                   redirectPort="8443"
+                   compression="on"
+                   compressableMimeType="text/html,text/xml,text/plain,text/css,application/json,application/javascript,application/x-javascript"
+        />
 
         <Engine name="Catalina" defaultHost="localhost">
             <Realm className="org.apache.catalina.realm.LockOutRealm">

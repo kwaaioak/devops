@@ -12,9 +12,14 @@
                    maxHttpHeaderSize="8192"
                    protocol="HTTP/1.1"
                    useBodyEncodingForURI="true"
-                   redirectPort="80"
+                   redirectPort="8443"
                    acceptCount="100"
-                   disableUploadTimeout="true"/>
+                   disableUploadTimeout="true"
+                   proxyName="<%= @node_name %>"
+                   proxyPort="443"
+                   secure="true"
+                   scheme="https"
+        />
         <Connector port="<%= @ssl_port %>"
                    maxThreads="150"
                    minSpareThreads="25"
@@ -23,13 +28,10 @@
                    maxHttpHeaderSize="8192"
                    protocol="HTTP/1.1"
                    useBodyEncodingForURI="true"
-                   redirectPort="443"
+                   redirectPort="8443"
                    acceptCount="100"
                    disableUploadTimeout="true"
-                   proxyName="<%= @node_name %>"
-                   proxyPort="443"
-                   secure="true"
-                   scheme="https"/>
+        />
         <Engine name="Catalina" defaultHost="localhost">
             <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">
                 <Context path="" docBase="${catalina.home}/atlassian-jira" reloadable="false" useHttpOnly="true">
