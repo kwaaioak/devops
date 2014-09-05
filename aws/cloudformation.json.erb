@@ -159,20 +159,19 @@
                                     "    \"recipe[storage]\",", 
                                     "    \"recipe[mysql::server]\",", 
                                     "    \"recipe[apache2]\",", 
-                                    "    \"recipe[reverse-proxy]\",",
+                                    "    \"recipe[reverse-proxy]\"",<% runlist_one = true %>
 <% if !@services.any? or @services.include? 'jenkins' %>
-                                    "    \"recipe[jenkins::master]\",", 
+                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[jenkins::master]\"", 
 <% end %>
 <% if !@services.any? or @services.include? 'chef' %>
-                                    "    \"recipe[chef-server]\",",
+                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[chef-server]\"",
 <% end %>
 <% if !@services.any? or @services.include? 'jira' %>
-                                    "    \"recipe[jira]\",",
+                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[jira]\"",
 <% end %>
 <% if !@services.any? or @services.include? 'stash' %>
-                                    "    \"recipe[stash]\",",
+                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[stash]\"",
 <% end %>
-                                    "    \"\"",
                                     "  ],", 
 <% if !@services.any? or @services.include? 'stash' %>
                                     "  \"stash\": {", 
@@ -185,20 +184,20 @@
 <% end %>
                                     "  \"storage\": {", 
                                     "    \"dirs\": [", 
+                                    "      \"/var/lib/mysql\"", 
 <% if !@services.any? or @services.include? 'stash' %>
-                                    "      \"/var/lib/stash\",", 
+                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/var/lib/stash\",", 
 <% end %>
-                                    "      \"/var/lib/git\",", 
+                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/var/lib/git\"",
 <% if !@services.any? or @services.include? 'jenkins' %>
-                                    "      \"/var/lib/jenkins\",", 
+                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/var/lib/jenkins\"", 
 <% end %>
 <% if !@services.any? or @services.include? 'jira' %>
-                                    "      \"/var/lib/jira\",", 
+                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/var/lib/jira\"", 
 <% end %>
 <% if !@services.any? or @services.include? 'chef' %>
-                                    "      \"/etc/chef-server\",", 
+                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/etc/chef-server\"", 
 <% end %>
-                                    "      \"/var/lib/mysql\"", 
                                     "    ],", 
                                     "    \"mount_type\": \"aws_ebs\",", 
                                     { "Fn::Join": [ "", [
@@ -235,10 +234,10 @@
                                     "      }, ",
                                     "      \"bookshelf\": {",
                                     "        \"data_dir\": \"/mnt/storage/chef-server/bookshelf/data\",",
-                                    "        \"external_url\": \"https://chef.<%= @domain %>\"",
+                                    "        \"external_url\": \"https://chef.<%= @domain_root %>\"",
                                     "      }, ",
                                     "      \"erchef\": {",
-                                    "        \"base_resource_url\": \"https://chef.<%= @domain %>\"",
+                                    "        \"base_resource_url\": \"https://chef.<%= @domain_root %>\"",
                                     "      }, ",
                                     "      \"postgresql\": {",
                                     "        \"data_dir\": \"/mnt/storage/chef-server/postgresql/data\"",
@@ -249,33 +248,45 @@
                                     "  \"reverse-proxy\": {",
                                     "    \"apps\": {",
 <% if !@services.any? or @services.include? 'jenkins' %>
+<%  if defined? one_reverse_proxy %>
+                                    "        ,",
+<%  one_reverse_proxy = true end %>
                                     "        \"jenkins\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"jenkins.", { "Ref": "ZoneName" }, "\","
                                     ] ] },
                                     "            \"port\": 8090,",
                                     "            \"force_ssl\": true",
-                                    "        },",
+                                    "        }",
 <% end %>
 <% if !@services.any? or @services.include? 'chef' %>
+<%  if defined? one_reverse_proxy %>
+                                    "        ,",
+<%  one_reverse_proxy = true end %>
                                     "        \"chef\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"chef.", { "Ref": "ZoneName" }, "\","
                                     ] ] }, 
                                     "            \"port\": 8083,",
                                     "            \"force_ssl\": true",
-                                    "        },",
+                                    "        }",
 <% end %>
 <% if !@services.any? or @services.include? 'jira' %>
+<%  if defined? one_reverse_proxy %>
+                                    "        ,",
+<%  one_reverse_proxy = true end %>
                                     "        \"jira\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"jira.", { "Ref": "ZoneName" }, "\","
                                     ] ] }, 
                                     "            \"port\": 8080,",
                                     "            \"force_ssl\": false",
-                                    "        },",
+                                    "        }",
 <% end %>
 <% if !@services.any? or @services.include? 'stash' %>
+<%  if defined? one_reverse_proxy %>
+                                    "        ,",
+<%  one_reverse_proxy = true end %>
                                     "        \"stash\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"stash.", { "Ref": "ZoneName" }, "\","
@@ -283,8 +294,8 @@
                                     "            \"port\": 7990,",
                                     "            \"force_ssl\": false",
                                     "        }",
-                                    "    },",
 <% end %>
+                                    "    },",
                                     "    \"ssl\": {",
                                     "        \"enabled\": true,",
                                     { "Fn::Join": [ "", [
