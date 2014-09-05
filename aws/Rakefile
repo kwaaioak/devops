@@ -26,8 +26,8 @@ task :up => [ CLOUDFORMATION_JSON, :upload_recipes ] do
     :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
     :'KeyName' => @key_name,
     :'AvailabilityZone' => @availability_zone,
-    :'ZoneName' => @domain,
     :'SnapshotId' => @snapshot,
+    :'ZoneName' => @domain_root,
     :'Debug' => @debug
   }.map{|k,v| "#{k}=#{v}"}.join(';')
 
@@ -39,8 +39,8 @@ task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do
     :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
     :'KeyName' => @key_name,
     :'AvailabilityZone' => @availability_zone,
-    :'ZoneName' => @domain,
     :'SnapshotId' => @snapshot,
+    :'ZoneName' => @domain_root,
     :'Debug' => @debug
   }.map{|k,v| "#{k}=#{v}"}.join(';')
 
@@ -56,5 +56,5 @@ task :validate => [ CLOUDFORMATION_JSON ] do
 end
 
 task :ssh do
-  sh %{ ssh -o StrictHostKeyChecking=no -i ~/.ssh/} + @key_name + %{.pem} + %{ ubuntu@ops.} + @domain
+  sh %{ ssh -o StrictHostKeyChecking=no -i ~/.ssh/} + @key_name + %{.pem} + %{ ubuntu@ops.} + @domain_root
 end
