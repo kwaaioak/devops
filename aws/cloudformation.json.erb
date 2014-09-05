@@ -127,18 +127,22 @@
                                     "  \"java\": {", 
                                     "    \"jdk_version\": \"7\"", 
                                     "  },", 
+<% if !@services.any? or @services.include? 'jenkins' %>
                                     "  \"jenkins\": {", 
                                     "    \"master\": {", 
                                     "      \"install_method\": \"package\",", 
                                     "      \"port\": \"8090\"", 
                                     "    }", 
                                     "  },", 
+<% end %>
+<% if !@services.any? or @services.include? 'jira' %>
                                     "  \"jira\": {", 
                                     { "Fn::Join": [ "", [
                                         "    \"node_name\": ",
                                         "\"jira.", { "Ref": "ZoneName" }, "\""
                                     ] ] }, 
                                     "  },", 
+<% end %>
                                     "  \"mysql\": {", 
                                     "    \"allow_remote_root\": true,", 
                                     "    \"bind_address\": \"0.0.0.0\",", 
@@ -157,11 +161,21 @@
                                     "    \"recipe[mysql::server]\",", 
                                     "    \"recipe[apache2]\",", 
                                     "    \"recipe[reverse-proxy]\",",
-                                    "    \"recipe[jira]\",", 
-                                    "    \"recipe[stash]\",", 
+<% if !@services.any? or @services.include? 'jenkins' %>
                                     "    \"recipe[jenkins::master]\",", 
-                                    "    \"recipe[chef-server]\"",
+<% end %>
+<% if !@services.any? or @services.include? 'chef' %>
+                                    "    \"recipe[chef-server]\",",
+<% end %>
+<% if !@services.any? or @services.include? 'jira' %>
+                                    "    \"recipe[jira]\",",
+<% end %>
+<% if !@services.any? or @services.include? 'stash' %>
+                                    "    \"recipe[stash]\",",
+<% end %>
+                                    "    \"\"",
                                     "  ],", 
+<% if !@services.any? or @services.include? 'stash' %>
                                     "  \"stash\": {", 
                                     "    \"home\": \"/mnt/storage/stash\",", 
                                     { "Fn::Join": [ "", [
@@ -169,14 +183,23 @@
                                     "\"stash.", { "Ref": "ZoneName" }, "\""
                                     ] ] }, 
                                     "  },", 
+<% end %>
                                     "  \"storage\": {", 
                                     "    \"dirs\": [", 
-                                    "      \"/var/lib/mysql\",", 
+<% if !@services.any? or @services.include? 'stash' %>
                                     "      \"/var/lib/stash\",", 
+<% end %>
                                     "      \"/var/lib/git\",", 
+<% if !@services.any? or @services.include? 'jenkins' %>
                                     "      \"/var/lib/jenkins\",", 
+<% end %>
+<% if !@services.any? or @services.include? 'jira' %>
                                     "      \"/var/lib/jira\",", 
-                                    "      \"/etc/chef-server\"", 
+<% end %>
+<% if !@services.any? or @services.include? 'chef' %>
+                                    "      \"/etc/chef-server\",", 
+<% end %>
+                                    "      \"/var/lib/mysql\"", 
                                     "    ],", 
                                     "    \"mount_type\": \"aws_ebs\",", 
                                     { "Fn::Join": [ "", [
@@ -197,6 +220,7 @@
                                     ] ] }, 
                                     "    }", 
                                     "  },",
+<% if !@services.any? or @services.include? 'chef' %>
                                     "  \"chef-server\": {",
                                     "    \"configuration\": {",
                                     "      \"nginx\": {",
@@ -222,8 +246,10 @@
                                     "      } ",
                                     "    }",
                                     "  },",
+<% end %>
                                     "  \"reverse-proxy\": {",
                                     "    \"apps\": {",
+<% if !@services.any? or @services.include? 'jenkins' %>
                                     "        \"jenkins\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"jenkins.", { "Ref": "ZoneName" }, "\","
@@ -231,6 +257,8 @@
                                     "            \"port\": 8090,",
                                     "            \"force_ssl\": true",
                                     "        },",
+<% end %>
+<% if !@services.any? or @services.include? 'chef' %>
                                     "        \"chef\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"chef.", { "Ref": "ZoneName" }, "\","
@@ -238,21 +266,28 @@
                                     "            \"port\": 8083,",
                                     "            \"force_ssl\": true",
                                     "        },",
+<% end %>
+<% if !@services.any? or @services.include? 'jira' %>
                                     "        \"jira\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"jira.", { "Ref": "ZoneName" }, "\","
                                     ] ] }, 
-                                    "            \"port\": 8080",
+                                    "            \"port\": 8080,",
+                                    "            \"force_ssl\": false",
                                     "        },",
+<% end %>
+<% if !@services.any? or @services.include? 'stash' %>
                                     "        \"stash\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"stash.", { "Ref": "ZoneName" }, "\","
                                     ] ] }, 
-                                    "            \"port\": 7990",
+                                    "            \"port\": 7990,",
+                                    "            \"force_ssl\": false",
                                     "        }",
                                     "    },",
+<% end %>
                                     "    \"ssl\": {",
-                                    "        \"enabled\": \"true\",",
+                                    "        \"enabled\": true,",
                                     { "Fn::Join": [ "", [
                                         "        \"certificate_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
                                     ] ] }, 
@@ -332,14 +367,7 @@
                 "Comment": { "Ref": "AWS::StackName" }, 
                 "HostedZoneName": { "Fn::Join": [ "", [ { "Ref": "ZoneName" }, "." ] ] }, 
                 "RecordSets": [
-                    {
-                        "Name": { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }, 
-                        "ResourceRecords": [
-                            { "Fn::GetAtt": [ "DevOpsServer", "PublicIp" ] }
-                        ], 
-                        "TTL": "60", 
-                        "Type": "A"
-                    }, 
+<% if !@services.any? or @services.include? 'jira' %>
                     {
                         "Name": { "Fn::Join": [ "", [ "jira.", { "Ref": "ZoneName" }, "." ] ] }, 
                         "ResourceRecords": [
@@ -348,6 +376,8 @@
                         "TTL": "900", 
                         "Type": "CNAME"
                     }, 
+<% end %>
+<% if !@services.any? or @services.include? 'stash' %>
                     {
                         "Name": { "Fn::Join": [ "", [ "stash.", { "Ref": "ZoneName" }, "." ] ] }, 
                         "ResourceRecords": [
@@ -356,6 +386,8 @@
                         "TTL": "900", 
                         "Type": "CNAME"
                     }, 
+<% end %>
+<% if !@services.any? or @services.include? 'jenkins' %>
                     {
                         "Name": { "Fn::Join": [ "", [ "jenkins.", { "Ref": "ZoneName" }, "." ]] }, 
                         "ResourceRecords": [
@@ -364,6 +396,8 @@
                         "TTL": "900", 
                         "Type": "CNAME"
                     },
+<% end %>
+<% if !@services.any? or @services.include? 'chef' %>
                     {
                         "Name": { "Fn::Join": [ "", [ "chef.", { "Ref": "ZoneName" }, "." ]] }, 
                         "ResourceRecords": [
@@ -371,6 +405,15 @@
                         ], 
                         "TTL": "900", 
                         "Type": "CNAME"
+                    },
+<% end %>
+                    {
+                        "Name": { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }, 
+                        "ResourceRecords": [
+                            { "Fn::GetAtt": [ "DevOpsServer", "PublicIp" ] }
+                        ], 
+                        "TTL": "60", 
+                        "Type": "A"
                     }
                 ]
             }

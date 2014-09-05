@@ -8,3 +8,4 @@
 @availability_zone = ""
 @key_name = ""
 @image_id = "ami-864d84ee"
+@services = [  ]
