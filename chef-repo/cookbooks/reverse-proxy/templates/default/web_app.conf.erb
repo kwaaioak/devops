@@ -15,12 +15,12 @@
         Allow from all
     </Location>
 
-    <%= if @params[:force_ssl]? %>
+    <% if @params[:force_ssl] %>
         RewriteEngine on
         RewriteCond %{HTTP:X-Forwarded-Proto} !https
         RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R,L]
 
-    <%= end %>
+    <% end %>
     ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
     CustomLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-access.log combined
 
