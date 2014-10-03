@@ -191,17 +191,19 @@
                                     "    \"dirs\": [", 
                                     "      \"/var/lib/mysql\"", 
 <% if !@services.any? or @services.include? 'stash' %>
-                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/var/lib/stash\",", 
+                                    "      ,\"/var/lib/stash\"", 
 <% end %>
-                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/var/lib/git\"",
+<% if !@services.any? or @services.include? 'git' %>
+                                    "      ,\"/var/lib/git\"",
+<% end %>
 <% if !@services.any? or @services.include? 'jenkins' %>
-                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/var/lib/jenkins\"", 
+                                    "      ,\"/var/lib/jenkins\"", 
 <% end %>
 <% if !@services.any? or @services.include? 'jira' %>
-                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/var/lib/jira\"", 
+                                    "      ,\"/var/lib/jira\"", 
 <% end %>
 <% if !@services.any? or @services.include? 'chef' %>
-                                    "      <%  if defined? storage_one %>,<%  storage_one = true end %>\"/etc/chef-server\"", 
+                                    "      ,\"/etc/chef-server\"", 
 <% end %>
                                     "    ],", 
                                     "    \"mount_type\": \"aws_ebs\",", 
