@@ -16,9 +16,9 @@
     </Location>
 
     <% if @params[:force_ssl] %>
-    RewriteEngine on
-    RewriteCond %{HTTP:X-Forwarded-Proto} !https
-    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R,L]
+        RewriteEngine on
+        RewriteCond %{HTTP:X-Forwarded-Proto} !https
+        RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R,L]
 
     <% end %>
     ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
