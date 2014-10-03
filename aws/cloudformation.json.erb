@@ -275,7 +275,7 @@
                                         "            \"node_name\": \"chef.", { "Ref": "ZoneName" }, "\","
                                     ] ] }, 
                                     "            \"port\": 8083,",
-                                    "            \"force_ssl\": true",
+                                    "            \"force_ssl\": false",
                                     "        }",
 <% end %>
 <% if !@services.any? or @services.include? 'jira' %>
