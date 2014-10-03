@@ -41,16 +41,20 @@ Creating a Dev/Ops Server on Amazon
 ===================================
 * Make sure you have an access key and secret access key in AWS with the following permissions:
     AmazonEC2FullAccess
+    IAMFullAccess (you may want a restricted set of permissions, but the CloudFormation template will create an IAM user just for the stack)
     AmazonRoute53FullAccess
     AmazonS3FullAccess
     CloudFormation (there isn't a policy for this, so create a custom policy with full access to CloudFormation)
-    IAMFullAccess (you may want a restricted set of permissions, but the CloudFormation template will create an IAM user just for the stack)
+* Create an EC2 Key Pair in the region you'll be using (e.g. KWAAIOAK_DEVOPS_USEAST)
+    * Download the .pem to ~/.ssh/ (and fix permissions to 0600)
+* Create an S3 bucket
 * Customize any values you want from aws/config.rb and save it as aws/config.local.rb
+    * Add the EC2 Key Pair name to @key_name
+    * Use the S3 bucket just created in @devops_bucket
 * Make sure you have the following settings in your knife.rb
     knife[:aws_access_key_id]
     knife[:aws_secret_access_key]
     knife[:region]
-* Create a Key Pair in the region you'll be using
 * You need to create a Route53 zone (this cannot be automated) called @stack_name.@domain_root
 * Finally, run the following
     $ sudo gem install bundler
