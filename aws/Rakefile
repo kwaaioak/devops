@@ -55,6 +55,22 @@ task :validate => [ CLOUDFORMATION_JSON ] do
   sh %{knife cfn --config=} + @knife_config + %{ validate -f } + CLOUDFORMATION_JSON
 end
 
-task :ssh do
-  sh %{ ssh -o StrictHostKeyChecking=no -i ~/.ssh/} + @key_name + %{.pem} + %{ ubuntu@ops.} + @domain_root
+desc "Opens a secure shell to the server"
+task :ssh do |t, args|
+    knife_opts="--config=#{@knife_config}" if @knife_config
+    shell = `knife cfn #{knife_opts} outputs --output_parameter_format #{@stack_name}`
+    if !shell.nil?
+        outputs = Hash.new
+        shell.split(/\n/).reject(&:empty?).each do |line|
+            row = line.split(/[\w-]+: (\w+)=(.+)/)
+            outputs[row[1]] = row[2]
+        end
+        hostname = outputs['PublicIp']
+    end
+
+    # This is somewhat dangerous at it relies on correct DNS entries
+    # (sometimes, we just need to get into the server before CloudFormation has done its thing)
+    hostname = "ops.#{@domain}" if hostname.nil?
+
+    sh "ssh -o StrictHostKeyChecking=no -i ~/.ssh/#{@key_name}.pem ubuntu@#{hostname}"
 end

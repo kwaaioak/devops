@@ -60,6 +60,11 @@
             "Type": "String"
         }
     }, 
+    "Outputs": {
+        "PublicIp": {
+            "Value": { "Fn::GetAtt": [ "DevOpsServer", "PublicIp" ] }
+        }
+    },
     "Conditions": {
         "CreateFromSnapshot": {
             "Fn::Not" : [{ "Fn::Equals": [ { "Ref": "SnapshotId" }, "" ] }]
