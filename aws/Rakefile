@@ -17,42 +17,51 @@ file CLOUDFORMATION_JSON => [ CLOUDFORMATION_JSON + '.erb', CONFIG ] do
 end
 
 task :upload_recipes do
-  sh %{ berks package -b ../Berksfile cookbooks.tar.gz }
-  sh %{knife s3 --config=} + @knife_config + %{ upload --public -b } + @devops_bucket + %{ -f cookbooks.tar.gz}
+    sh %{ berks package -b ../Berksfile cookbooks.tar.gz }
+
+    knife_opts="--config=#{@knife_config}" if @knife_config
+    sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f cookbooks.tar.gz"
 end
 
-task :up => [ CLOUDFORMATION_JSON, :upload_recipes ] do
-  params = {
-    :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
-    :'KeyName' => @key_name,
-    :'AvailabilityZone' => @availability_zone,
-    :'SnapshotId' => @snapshot,
-    :'ZoneName' => @domain_root,
-    :'Debug' => @debug
-  }.map{|k,v| "#{k}=#{v}"}.join(';')
+task :up, [ :snapshot_id ] => [ CLOUDFORMATION_JSON, :upload_recipes ] do | t, args |
+    snapshot_id = args[:snapshot_id]
 
-  sh %{knife cfn --config=} + @knife_config + %{ create } + @stack_name + %{ --capabilities CAPABILITY_IAM } + %{ -f } + CLOUDFORMATION_JSON + %{ --parameters '} + params + %{'}
+    params = {
+        :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
+        :'KeyName' => @key_name,
+        :'AvailabilityZone' => @availability_zone,
+        :'ZoneName' => @domain,
+        :'Debug' => @debug
+    }
+    params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
+
+    knife_opts="--config=#{@knife_config}" if @knife_config
+    sh "knife cfn #{knife_opts} create #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
 end
 
 task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do
-  params = {
-    :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
-    :'KeyName' => @key_name,
-    :'AvailabilityZone' => @availability_zone,
-    :'SnapshotId' => @snapshot,
-    :'ZoneName' => @domain_root,
-    :'Debug' => @debug
-  }.map{|k,v| "#{k}=#{v}"}.join(';')
+    params = {
+        :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
+        :'KeyName' => @key_name,
+        :'AvailabilityZone' => @availability_zone,
+        :'ZoneName' => @domain,
+        :'Debug' => @debug
+    }
+    params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
 
-  sh %{knife cfn --config=} + @knife_config + %{ update } + @stack_name + %{ --capabilities CAPABILITY_IAM } + %{ -f } + CLOUDFORMATION_JSON + %{ --parameters '} + params + %{'}
+    knife_opts="--config=#{@knife_config}" if @knife_config
+    sh "knife cfn #{knife_opts} update #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
 end
 
-task :destroy do
-  sh %{knife cfn --config=} + @knife_config + %{ delete } + @stack_name
+desc "Destroys a server stack"
+task :destroy do |t, args|
+    knife_opts="--config=#{@knife_config}" if @knife_config
+    sh "knife cfn #{knife_opts} delete #{@stack_name}"
 end
 
 task :validate => [ CLOUDFORMATION_JSON ] do
-  sh %{knife cfn --config=} + @knife_config + %{ validate -f } + CLOUDFORMATION_JSON
+    knife_opts="--config=#{@knife_config}" if @knife_config
+    sh "knife cfn #{knife_config} validate -f #{CLOUDFORMATION_JSON}"
 end
 
 desc "Opens a secure shell to the server"
