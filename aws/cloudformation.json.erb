@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09", 
-    "Description": "<%= @description %>",
+    "Description": "Kwaai Oak DevOps Full Stack Server",
     "Parameters": {
         "AvailabilityZone": {
             "Default": "us-east-1a", 
@@ -39,6 +39,18 @@
         }, 
         "KeyName": {
             "Description": "Name of an existing EC2 KeyPair to enable SSH access to the web server", 
+            "Type": "String"
+        }, 
+        "StackName": {
+            "Description": "Name of the stack", 
+            "Type": "String"
+        }, 
+        "ImageId": {
+            "Description": "The AMI image id", 
+            "Type": "String"
+        }, 
+        "Description": {
+            "Description": "A description of the stack", 
             "Type": "String"
         }, 
         "RecipeURL": {
@@ -84,7 +96,7 @@
             "Type" : "AWS::EC2::SecurityGroup",
             "Properties" :
             {
-                "GroupDescription" : "<%= @description %>", 
+                "GroupDescription" : { "Ref": "Description" }, 
                 "SecurityGroupIngress" : [
                     {
                         "IpProtocol" : "tcp",
@@ -208,7 +220,7 @@
                                     "    ],", 
                                     "    \"mount_type\": \"aws_ebs\",", 
                                     { "Fn::Join": [ "", [
-                                        "    \"description\": \"<%= @description %>\","
+                                        "    \"description\": \"", { "Ref": "Description" }, "\","
                                     ] ] }, 
                                         "    \"aws\": {", 
                                     { "Fn::Join": [ "", [
@@ -241,10 +253,14 @@
                                     "      }, ",
                                     "      \"bookshelf\": {",
                                     "        \"data_dir\": \"/mnt/storage/chef-server/bookshelf/data\",",
-                                    "        \"external_url\": \"https://chef.<%= @domain_root %>\"",
+                                    { "Fn::Join": [ "", [
+                                        "    \"external_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
+                                    ] ] }, 
                                     "      }, ",
                                     "      \"erchef\": {",
-                                    "        \"base_resource_url\": \"https://chef.<%= @domain_root %>\"",
+                                    { "Fn::Join": [ "", [
+                                        "    \"base_resource_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
+                                    ] ] }, 
                                     "      }, ",
                                     "      \"postgresql\": {",
                                     "        \"data_dir\": \"/mnt/storage/chef-server/postgresql/data\"",
@@ -346,7 +362,7 @@
             }, 
             "Properties": {
                 "AvailabilityZone": { "Ref": "AvailabilityZone" }, 
-                "ImageId": "<%= @image_id %>", 
+                "ImageId": { "Ref": "ImageId" }, 
                 "InstanceType": { "Ref": "InstanceType" }, 
                 "KeyName": { "Ref": "KeyName" }, 
                 "SecurityGroups": [

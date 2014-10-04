@@ -27,6 +27,9 @@ task :up, [ :snapshot_id ] => [ CLOUDFORMATION_JSON, :upload_recipes ] do | t, a
     snapshot_id = args[:snapshot_id]
 
     params = {
+        :'StackName' => @stack_name,
+        :'Description' => "#{@description} (#{@stack_name})",
+        :'ImageId' => @image_id,
         :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
         :'KeyName' => @key_name,
         :'AvailabilityZone' => @availability_zone,
