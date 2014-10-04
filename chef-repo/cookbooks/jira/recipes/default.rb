@@ -135,6 +135,18 @@ if node.attribute?('stash') and node.attribute?('reverse-proxy') and node['rever
         environment ({
             "JAVA_HOME" => "#{node['jira']['prefix_dir']}/jira/jre"
         })
+
+        not_if "export JAVA_HOME=#{node['jira']['prefix_dir']}/jira/jre; $JAVA_HOME/bin/keytool -list -storepass changeit -keystore $JAVA_HOME/lib/security/cacerts -alias #{node['stash']['node_name']}"
+    end
+end
+
+ruby_block "Disable Java SSE extensions" do
+    block do
+        fe = Chef::Util::FileEdit.new("#{node['jira']['prefix_dir']}/jira/bin/setenv.sh")
+        fe.search_file_replace_line(
+            /^JVM_SUPPORT_RECOMMENDED_ARGS=/,
+            "JVM_SUPPORT_RECOMMENDED_ARGS=\"#{node['jira']['jvm']['extra_args']}\"")
+        fe.write_file
     end
 end
 

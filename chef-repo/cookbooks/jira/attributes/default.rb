@@ -6,6 +6,7 @@ default['jira']['prefix_dir']               = '/usr/local'
 default['jira']['install_cache']            = '/tmp'
 default['jira']['port']                     = '8080'
 default['jira']['ssl_port']                 = '8081'
+default['jira']['jvm']['extra_args']        = "-Djsse.enableSNIExtension=false"
 default['jira']['mysql']['host']            = 'localhost'
 default['jira']['mysql']['admin_username']  = 'root'
 default['jira']['mysql']['admin_password']  = 'password'
