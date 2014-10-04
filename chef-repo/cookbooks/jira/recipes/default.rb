@@ -127,6 +127,18 @@ template "#{node['jira']['prefix_dir']}/jira/conf/server.xml" do
 end
 
 #
+# Add the self-signed cert (if there is one) to the JIRA keystore - HACK ALERT!!!
+#
+if node.attribute?('stash') and node.attribute?('reverse-proxy') and node['reverse-proxy']['ssl']['enabled'] then
+    execute "import-stash-cert" do
+        command "$JAVA_HOME/bin/keytool -noprompt -storepass changeit -import -alias #{node['stash']['node_name']} -keystore $JAVA_HOME/lib/security/cacerts -file #{node['reverse-proxy']['ssl']['certificate_file']}"
+        environment ({
+            "JAVA_HOME" => "#{node['jira']['prefix_dir']}/jira/jre"
+        })
+    end
+end
+
+#
 # Daemon/service configuration
 #
 template "/etc/init.d/jira" do

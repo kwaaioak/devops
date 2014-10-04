@@ -55,7 +55,7 @@ directory node['stash']['home'] do
   action :create
 end
 
-template "#{node['stash']['home']}/stash-config.properties" do
+template "#{node['stash']['home']}/shared/stash-config.properties" do
 	source "stash-config.properties.erb"
 	mode 0664
 	variables({
@@ -92,6 +92,18 @@ template "#{node['ark']['prefix_root']}/stash/conf/server.xml" do
     :port      => node['stash']['port'],
     :ssl_port  => node['stash']['ssl_port']
   })
+end
+
+#
+# Add the self-signed cert (if there is one) to the JIRA keystore
+#
+if node.attribute?('jira') and node.attribute?('reverse-proxy') and node['reverse-proxy']['ssl']['enabled'] then
+    execute "import-stash-cert" do
+        command "$JAVA_HOME/bin/keytool -noprompt -storepass changeit -import -alias #{node['jira']['node_name']} -keystore $JAVA_HOME/lib/security/cacerts -file #{node['reverse-proxy']['ssl']['certificate_file']}"
+        environment ({
+            "JAVA_HOME" => "/usr/lib/jvm/java-7-openjdk-amd64/jre"
+        })
+    end
 end
 
 #
