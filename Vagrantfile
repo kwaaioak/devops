@@ -32,11 +32,11 @@ Vagrant.configure("2") do |config|
     chef.add_recipe 'mysql-backup'
     chef.add_recipe 'mysql-backup::restore'
     chef.add_recipe 'apache2'
+    chef.add_recipe 'reverse-proxy'
     chef.add_recipe 'jira'
     chef.add_recipe 'stash'
     chef.add_recipe 'chef-server'
     chef.add_recipe 'jenkins::master'
-    chef.add_recipe 'reverse-proxy'
     chef.json = {
       :'reverse-proxy' => {
         :apps => {
