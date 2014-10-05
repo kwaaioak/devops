@@ -33,6 +33,7 @@ Vagrant.configure("2") do |config|
     chef.add_recipe 'mysql-backup::restore'
     chef.add_recipe 'apache2'
     chef.add_recipe 'reverse-proxy'
+    chef.add_recipe 'bamboo'
     chef.add_recipe 'jira'
     chef.add_recipe 'stash'
     chef.add_recipe 'chef-server'
@@ -47,6 +48,10 @@ Vagrant.configure("2") do |config|
             :stash => {
                 :node_name => 'stash.local.kwaaioak.com',
                 :port => 7990
+            },
+            :bamboo => {
+                :node_name => 'bamboo.local.kwaaioak.com',
+                :port => 8085
             },
             :jenkins => {
                 :node_name => 'jenkins.local.kwaaioak.com',
@@ -71,7 +76,7 @@ Vagrant.configure("2") do |config|
       },
       :storage => {
         :mount_path           => '/mnt/storage',
-        :dirs                 => [ '/var/lib/stash', '/var/lib/git', '/var/lib/jenkins', '/var/lib/jira' ]
+        :dirs                 => [ '/var/lib/stash', '/var/lib/git', '/var/lib/jenkins', '/var/lib/jira', '/var/lib/bamboo' ]
       },
       :apache => {
         :version              => "2.4",
