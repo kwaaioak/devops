@@ -25,7 +25,7 @@ namespace :aws do
         sh "berks package -b #{berksfile} #{cookbooks_tarball}"
 
         knife_opts="--config=#{@knife_config}" if @knife_config
-        sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{cookbooks_tarball}"
+        sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{cookbooks_tarball} -r cookbooks.tar.gz"
     end
 
     task :up, [ :snapshot_id ] => [ CLOUDFORMATION_JSON, :upload_recipes ] do | t, args |
