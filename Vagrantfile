@@ -55,8 +55,8 @@ Vagrant.configure("2") do |config|
             },
             :chef => {
                 :node_name => 'chef.local.kwaaioak.com',
-                :port => 8083
-                :force_ssl => true
+                :port => 8083,
+                :force_ssl => false
             }
         },
         :ssl => {
