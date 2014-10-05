@@ -63,7 +63,10 @@ Vagrant.configure("2") do |config|
             :enabled => true,
             :certificate_file => '/mnt/storage/ssl/local.kwaaioak.com/server.crt',
             :certificate_key_file => '/mnt/storage/ssl/local.kwaaioak.com/server.key',
-            :certificate_chain_file => '/mnt/storage/ssl/local.kwaaioak.com/server.crt'
+            :certificate_chain_file => '/mnt/storage/ssl/local.kwaaioak.com/server.crt',
+            :certificate => {
+                :common_name => '*.local.kwaaioak.com'
+            }
         }
       },
       :storage => {

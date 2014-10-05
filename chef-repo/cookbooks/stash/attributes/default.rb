@@ -1,5 +1,5 @@
 default['stash']['revision']                = '3.3.1'
-default['stash']['node_name']               = 'stash.dev.kwaaioak.com'
+default['stash']['node_name']               = 'stash.local.kwaaioak.com'
 default['stash']['port']                    = '7990'
 default['stash']['ssl_port']                = '7991'
 default['stash']['home']                    = '/var/lib/stash'

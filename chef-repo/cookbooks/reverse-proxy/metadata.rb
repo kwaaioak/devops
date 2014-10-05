@@ -10,3 +10,4 @@ recipe              "reverse-proxy::web_app_proxy", "Configures a web applicatio
 recipe              "reverse-proxy::ssl_proxy", "Configures an SSL reverse proxy for all web apps"
 supports            "debian"
 depends             "apache2"
+depends             "ssl_certificate"
