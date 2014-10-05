@@ -47,8 +47,13 @@ namespace :aws do
         sh "knife cfn #{knife_opts} create #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
     end
 
-    task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do
+    task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do | t, args |
+        snapshot_id = args[:snapshot_id]
+
         params = {
+            :'StackName' => @stack_name,
+            :'Description' => "#{@description} (#{@stack_name})",
+            :'ImageId' => @image_id,
             :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
             :'KeyName' => @key_name,
             :'AvailabilityZone' => @availability_zone,
