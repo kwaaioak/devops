@@ -1,88 +1,97 @@
 require 'erb'
+require 'rake/clean'
 
-CLOUDFORMATION_JSON='cloudformation.json'
-CONFIG='config.rb'
-CONFIG_LOCAL='config.local.rb'
+namespace :aws do
 
-load CONFIG
-load CONFIG_LOCAL if File.exist?(CONFIG_LOCAL)
+    CLOUDFORMATION_JSON=File.dirname(__FILE__) + '/cloudformation.json'
+    CONFIG=File.dirname(__FILE__) + '/config.rb'
+    CONFIG_LOCAL=File.dirname(__FILE__) + '/config.local.rb'
 
-task :default => :up
+    load CONFIG
+    load CONFIG_LOCAL if File.exist?(CONFIG_LOCAL)
 
-desc "Builds the AWS CloudFormation config"
-file CLOUDFORMATION_JSON => [ CLOUDFORMATION_JSON + '.erb', CONFIG ] do 
-    File.open(CLOUDFORMATION_JSON, 'w+') do |f|
-        f.write(ERB.new(File.read(CLOUDFORMATION_JSON + '.erb')).result())
-    end
-end
+    task :default => :up
 
-task :upload_recipes do
-    sh %{ berks package -b ../Berksfile cookbooks.tar.gz }
-
-    knife_opts="--config=#{@knife_config}" if @knife_config
-    sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f cookbooks.tar.gz"
-end
-
-task :up, [ :snapshot_id ] => [ CLOUDFORMATION_JSON, :upload_recipes ] do | t, args |
-    snapshot_id = args[:snapshot_id]
-
-    params = {
-        :'StackName' => @stack_name,
-        :'Description' => "#{@description} (#{@stack_name})",
-        :'ImageId' => @image_id,
-        :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
-        :'KeyName' => @key_name,
-        :'AvailabilityZone' => @availability_zone,
-        :'ZoneName' => @domain,
-        :'Debug' => @debug
-    }
-    params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
-
-    knife_opts="--config=#{@knife_config}" if @knife_config
-    sh "knife cfn #{knife_opts} create #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
-end
-
-task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do
-    params = {
-        :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
-        :'KeyName' => @key_name,
-        :'AvailabilityZone' => @availability_zone,
-        :'ZoneName' => @domain,
-        :'Debug' => @debug
-    }
-    params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
-
-    knife_opts="--config=#{@knife_config}" if @knife_config
-    sh "knife cfn #{knife_opts} update #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
-end
-
-desc "Destroys a server stack"
-task :destroy do |t, args|
-    knife_opts="--config=#{@knife_config}" if @knife_config
-    sh "knife cfn #{knife_opts} delete #{@stack_name}"
-end
-
-task :validate => [ CLOUDFORMATION_JSON ] do
-    knife_opts="--config=#{@knife_config}" if @knife_config
-    sh "knife cfn #{knife_config} validate -f #{CLOUDFORMATION_JSON}"
-end
-
-desc "Opens a secure shell to the server"
-task :ssh do |t, args|
-    knife_opts="--config=#{@knife_config}" if @knife_config
-    shell = `knife cfn #{knife_opts} outputs --output_parameter_format #{@stack_name}`
-    if !shell.nil?
-        outputs = Hash.new
-        shell.split(/\n/).reject(&:empty?).each do |line|
-            row = line.split(/[\w-]+: (\w+)=(.+)/)
-            outputs[row[1]] = row[2]
+    desc "Builds the AWS CloudFormation config"
+    file CLOUDFORMATION_JSON => [ CLOUDFORMATION_JSON + '.erb', CONFIG ] do 
+        File.open(CLOUDFORMATION_JSON, 'w+') do |f|
+            f.write(ERB.new(File.read(CLOUDFORMATION_JSON + '.erb')).result())
         end
-        hostname = outputs['PublicIp']
     end
 
-    # This is somewhat dangerous at it relies on correct DNS entries
-    # (sometimes, we just need to get into the server before CloudFormation has done its thing)
-    hostname = "ops.#{@domain}" if hostname.nil?
+    task :upload_recipes do
+        berksfile=File.dirname(__FILE__) + '/../Berksfile'
+        cookbooks_tarball=File.dirname(__FILE__) + '/cookbooks.tar.gz'
+        sh "berks package -b #{berksfile} #{cookbooks_tarball}"
 
-    sh "ssh -o StrictHostKeyChecking=no -i ~/.ssh/#{@key_name}.pem ubuntu@#{hostname}"
+        knife_opts="--config=#{@knife_config}" if @knife_config
+        sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{cookbooks_tarball}"
+    end
+
+    task :up, [ :snapshot_id ] => [ CLOUDFORMATION_JSON, :upload_recipes ] do | t, args |
+        snapshot_id = args[:snapshot_id]
+
+        params = {
+            :'StackName' => @stack_name,
+            :'Description' => "#{@description} (#{@stack_name})",
+            :'ImageId' => @image_id,
+            :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
+            :'KeyName' => @key_name,
+            :'AvailabilityZone' => @availability_zone,
+            :'ZoneName' => @domain,
+            :'Debug' => @debug
+        }
+        params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
+
+        knife_opts="--config=#{@knife_config}" if @knife_config
+        sh "knife cfn #{knife_opts} create #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
+    end
+
+    task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do
+        params = {
+            :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
+            :'KeyName' => @key_name,
+            :'AvailabilityZone' => @availability_zone,
+            :'ZoneName' => @domain,
+            :'Debug' => @debug
+        }
+        params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
+
+        knife_opts="--config=#{@knife_config}" if @knife_config
+        sh "knife cfn #{knife_opts} update #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
+    end
+
+    desc "Destroys a server stack"
+    task :destroy do |t, args|
+        knife_opts="--config=#{@knife_config}" if @knife_config
+        sh "knife cfn #{knife_opts} delete #{@stack_name}"
+    end
+
+    task :validate => [ CLOUDFORMATION_JSON ] do
+        knife_opts="--config=#{@knife_config}" if @knife_config
+        sh "knife cfn #{knife_config} validate -f #{CLOUDFORMATION_JSON}"
+    end
+
+    desc "Opens a secure shell to the server"
+    task :ssh do |t, args|
+        knife_opts="--config=#{@knife_config}" if @knife_config
+        shell = `knife cfn #{knife_opts} outputs --output_parameter_format #{@stack_name}`
+        if !shell.nil?
+            outputs = Hash.new
+            shell.split(/\n/).reject(&:empty?).each do |line|
+                row = line.split(/[\w-]+: (\w+)=(.+)/)
+                outputs[row[1]] = row[2]
+            end
+            hostname = outputs['PublicIp']
+        end
+
+        # This is somewhat dangerous at it relies on correct DNS entries
+        # (sometimes, we just need to get into the server before CloudFormation has done its thing)
+        hostname = "ops.#{@domain}" if hostname.nil?
+
+        sh "ssh -o StrictHostKeyChecking=no -i ~/.ssh/#{@key_name}.pem ubuntu@#{hostname}"
+    end
+
+    CLEAN.include FileList[File.dirname(__FILE__) + 'cloudformation.json.erb', File.dirname(__FILE__) + '/tmp', File.dirname(__FILE__) + '/cookbooks' ]
 end
+
