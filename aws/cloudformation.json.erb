@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09", 
-    "Description": "Kwaai Oak DevOps Full Stack Server",
+    "Description": "Kwaai Oak DevOps (Full Stack Server)",
     "Parameters": {
         "AvailabilityZone": {
             "Default": "us-east-1a", 
@@ -143,6 +143,16 @@
                                     "  \"java\": {", 
                                     "    \"jdk_version\": \"7\"", 
                                     "  },", 
+<% if !@services.any? or @services.include? 'bamboo' %>
+                                    "  \"bamboo\": {", 
+                                    "    \"node_name\": {", 
+                                    { "Fn::Join": [ "", [
+                                        "    \"node_name\": ",
+                                        "\"bamboo.", { "Ref": "ZoneName" }, "\""
+                                    ] ] }, 
+                                    "    }", 
+                                    "  },", 
+<% end %>
 <% if !@services.any? or @services.include? 'jenkins' %>
                                     "  \"jenkins\": {", 
                                     "    \"master\": {", 
@@ -189,6 +199,9 @@
 <% if !@services.any? or @services.include? 'stash' %>
                                     "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[stash]\"",
 <% end %>
+<% if !@services.any? or @services.include? 'bamboo' %>
+                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[bamboo]\"",
+<% end %>
                                     "  ],", 
 <% if !@services.any? or @services.include? 'stash' %>
                                     "  \"stash\": {", 
@@ -204,6 +217,9 @@
                                     "      \"/var/lib/mysql\"", 
 <% if !@services.any? or @services.include? 'stash' %>
                                     "      ,\"/var/lib/stash\"", 
+<% end %>
+<% if !@services.any? or @services.include? 'bamboo' %>
+                                    "      ,\"/var/lib/bamboo\"", 
 <% end %>
 <% if !@services.any? or @services.include? 'git' %>
                                     "      ,\"/var/lib/git\"",
@@ -318,18 +334,35 @@
                                     "            \"force_ssl\": false",
                                     "        }",
 <% end %>
+<% if !@services.any? or @services.include? 'bamboo' %>
+<%  if defined? one_reverse_proxy %>
+                                    "        ,",
+<%  one_reverse_proxy = true end %>
+                                    "        \"bamboo\": {",
+                                    { "Fn::Join": [ "", [
+                                        "            \"node_name\": \"bamboo.", { "Ref": "ZoneName" }, "\","
+                                    ] ] }, 
+                                    "            \"port\": 8085,",
+                                    "            \"force_ssl\": false",
+                                    "        }",
+<% end %>
                                     "    },",
                                     "    \"ssl\": {",
                                     "        \"enabled\": true,",
                                     { "Fn::Join": [ "", [
-                                        "        \"certificate_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
+                                        "    \"certificate_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
                                     ] ] }, 
                                     { "Fn::Join": [ "", [
-                                        "        \"certificate_key_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.key\","
+                                        "    \"certificate_key_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.key\","
                                     ] ] }, 
                                     { "Fn::Join": [ "", [
-                                        "        \"certificate_chain_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\""
+                                        "    \"certificate_chain_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
                                     ] ] }, 
+                                    "        \"certificate\": {",
+                                    { "Fn::Join": [ "", [
+                                        "            \"common_name\": \"", { "Ref": "ZoneName" }, "\""
+                                    ] ] }, 
+                                    "        }",
                                     "    }",
                                     "}"
                                 ] ] }, 
@@ -416,6 +449,16 @@
 <% if !@services.any? or @services.include? 'stash' %>
                     {
                         "Name": { "Fn::Join": [ "", [ "stash.", { "Ref": "ZoneName" }, "." ] ] }, 
+                        "ResourceRecords": [
+                            { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }
+                        ], 
+                        "TTL": "900", 
+                        "Type": "CNAME"
+                    }, 
+<% end %>
+<% if !@services.any? or @services.include? 'bamboo' %>
+                    {
+                        "Name": { "Fn::Join": [ "", [ "bamboo.", { "Ref": "ZoneName" }, "." ] ] }, 
                         "ResourceRecords": [
                             { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }
                         ], 
