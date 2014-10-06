@@ -28,6 +28,8 @@ ssl_certificate node['reverse-proxy']['ssl']['certificate']['common_name'] do
     key_path  node['reverse-proxy']['ssl']['certificate_key_file']
     cert_path node['reverse-proxy']['ssl']['certificate_file']
     notifies :restart, "service[apache2]"
+
+    not_if do ::File.exists?(node['reverse-proxy']['ssl']['certificate_file']) or ::File.exists?(node['reverse-proxy']['ssl']['certificate_key_file']) end
 end
 
 web_app "proxy_ssl" do
