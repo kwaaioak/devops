@@ -9,4 +9,4 @@
 @knife_config = ""
 @aws_access_key_id      = ""
 @aws_secret_access_key  = ""
-@services = [  ]
+@services = [ 'jenkins', 'jira', 'chef', 'stash' ]

@@ -74,7 +74,7 @@
     }, 
     "Outputs": {
         "PublicIp": {
-            "Value": { "Fn::GetAtt": [ "DevOpsServer", "PublicIp" ] }
+            "Value": { "Fn::GetAtt": [ "DevOpsServerInstance", "PublicIp" ] }
         }
     },
     "Conditions": {
@@ -125,12 +125,49 @@
                 ]
             }
         },
-        "DevOpsServer": {
+        "DevOpsServerInstance": {
             "Type": "AWS::EC2::Instance",
             "Metadata": {
                 "AWS::CloudFormation::Init": {
-                    "config": {
+                    "configSets": {
+                        "default": [ { "ConfigSet": "install" } ],
+                        "install": [ "install_cfn", "install_chef", "run_chef" ],
+                        "update": [ "run_chef" ]
+                    },
+                    "install_cfn": {
                         "files": {
+                            "/etc/cfn/cfn-hup.conf": {
+                                "content": { "Fn::Join": [ "", [
+                                    "[main]\n",
+                                    "stack=", { "Ref": "AWS::StackId" }, "\n", "region=", { "Ref": "AWS::Region" }, "\n"
+                                ]]},
+                                "mode" : "000400",
+                                "owner" : "root",
+                                "group" : "root"
+                            },
+                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                                "content": { "Fn::Join": [ "", [
+                                    "[cfn-auto-reloader-hook]\n",
+                                    "triggers=post.update\n", "path=Resources.DevOpsServerInstance.Metadata.AWS::CloudFormation::Init\n", "action=/opt/aws/bin/cfn-init ",
+                                    " --stack ", { "Ref" : "AWS::StackName" },
+                                    " --resource DevOpsServerInstance ",
+                                    " --configsets install ",
+                                    " --region ", { "Ref" : "AWS::Region" }, "\n"
+                                ]]},
+                                "mode" : "0400",
+                                "owner" : "root",
+                                "group" : "root"
+                            }
+                        }
+                    },
+                    "install_chef": {
+                        "files": {
+                            "/tmp/install-chef.sh": {
+                                "source": "https://www.opscode.com/chef/install.sh",
+                                "mode": "0600",
+                                "owner": "root",
+                                "group": "root"
+                            },
                             "/etc/chef/node.json": {
                                 "content": { "Fn::Join": [ "\n", [
                                     "{", 
@@ -145,12 +182,10 @@
                                     "  },", 
 <% if !@services.any? or @services.include? 'bamboo' %>
                                     "  \"bamboo\": {", 
-                                    "    \"node_name\": {", 
                                     { "Fn::Join": [ "", [
                                         "    \"node_name\": ",
                                         "\"bamboo.", { "Ref": "ZoneName" }, "\""
                                     ] ] }, 
-                                    "    }", 
                                     "  },", 
 <% end %>
 <% if !@services.any? or @services.include? 'jenkins' %>
@@ -270,12 +305,12 @@
                                     "      \"bookshelf\": {",
                                     "        \"data_dir\": \"/mnt/storage/chef-server/bookshelf/data\",",
                                     { "Fn::Join": [ "", [
-                                        "    \"external_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
+                                    "        \"external_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
                                     ] ] }, 
                                     "      }, ",
                                     "      \"erchef\": {",
                                     { "Fn::Join": [ "", [
-                                        "    \"base_resource_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
+                                    "        \"base_resource_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
                                     ] ] }, 
                                     "      }, ",
                                     "      \"postgresql\": {",
@@ -350,13 +385,13 @@
                                     "    \"ssl\": {",
                                     "        \"enabled\": true,",
                                     { "Fn::Join": [ "", [
-                                        "    \"certificate_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
+                                    "        \"certificate_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
                                     ] ] }, 
                                     { "Fn::Join": [ "", [
-                                        "    \"certificate_key_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.key\","
+                                    "        \"certificate_key_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.key\","
                                     ] ] }, 
                                     { "Fn::Join": [ "", [
-                                        "    \"certificate_chain_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
+                                    "        \"certificate_chain_file\": \"/mnt/storage/ssl/", { "Ref": "ZoneName" }, "/server.crt\","
                                     ] ] }, 
                                     "        \"certificate\": {",
                                     { "Fn::Join": [ "", [
@@ -364,6 +399,7 @@
                                     ] ] }, 
                                     "        }",
                                     "    }",
+                                    "  }",
                                     "}"
                                 ] ] }, 
                                 "group": "root", 
@@ -385,9 +421,17 @@
                                 "owner": "root"
                             }
                         }, 
-                        "packages": {
-                            "apt": {
-                                "chef": []
+                        "commands" : {
+                            "01_install_chef" : {
+                                "command" : "bash /tmp/install-chef.sh -v 11.16",
+                                "cwd" : "/tmp"
+                            }
+                        }
+                    },
+                    "run_chef" : {
+                        "commands" : {
+                            "01_run_chef_client" : {
+                                "command" : "export HOME=/root && chef-solo"
                             }
                         }
                     }
@@ -418,12 +462,11 @@
                         "easy_install /root/aws-cfn-bootstrap-latest/", 
                         "\n", 
                         "cfn-init -s ", { "Ref": "AWS::StackName" }, 
-                        " -r DevOpsServer ", 
+                        " -r DevOpsServerInstance ", 
                         "         --access-key ", { "Ref": "HostKeys" }, 
                         "         --secret-key ", { "Fn::GetAtt": [ "HostKeys", "SecretAccessKey" ] }, 
                         "         --region ", { "Ref": "AWS::Region" }, 
                         " || error_exit 'Failed to run cfn-init' &&\n", 
-                        "export HOME=/root && chef-solo &&\n",
                         "cfn-signal -e $? '", { "Ref": "DevOpsServerWaitHandle" }, "' &&\n",
                         "cfn-hup || error_exit 'Failed to start cfn-hup'\n"
                     ] ] }
@@ -489,7 +532,7 @@
                     {
                         "Name": { "Fn::Join": [ "", [ "ops.", { "Ref": "ZoneName" }, "." ] ] }, 
                         "ResourceRecords": [
-                            { "Fn::GetAtt": [ "DevOpsServer", "PublicIp" ] }
+                            { "Fn::GetAtt": [ "DevOpsServerInstance", "PublicIp" ] }
                         ], 
                         "TTL": "60", 
                         "Type": "A"
@@ -548,7 +591,7 @@
         }, 
         "DevOpsServerWaitForInstance": {
             "Type": "AWS::CloudFormation::WaitCondition",
-            "DependsOn": "DevOpsServer", 
+            "DependsOn": "DevOpsServerInstance", 
             "Properties": {
                 "Handle": { "Ref": "DevOpsServerWaitHandle" }, 
                 "Timeout": { "Fn::If": [ "Debug", "43200", "3600" ] }
