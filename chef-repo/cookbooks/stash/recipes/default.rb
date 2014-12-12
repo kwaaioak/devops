@@ -113,7 +113,7 @@ end
 # Chef::Util::FileEdit can't handle this, so we need to strip them out
 # See https://jira.atlassian.com/browse/STASH-6885
 execute "Remove non-ASCII characters from Stash setenv.sh" do
-    command "sed -i 's/\xA0/ /g' #{node['ark']['prefix_root']}/stash/bin/setenv.sh"
+    command "sed -i 's/[\xA0\xC2]/ /g' #{node['ark']['prefix_root']}/stash/bin/setenv.sh"
 end
 
 ruby_block "Disable Java SSE extensions" do
