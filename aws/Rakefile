@@ -4,11 +4,6 @@ require 'rake/clean'
 namespace :aws do
 
     CLOUDFORMATION_JSON=File.dirname(__FILE__) + '/cloudformation.json'
-    CONFIG=File.dirname(__FILE__) + '/config.rb'
-    CONFIG_LOCAL=File.dirname(__FILE__) + '/config.local.rb'
-
-    load CONFIG
-    load CONFIG_LOCAL if File.exist?(CONFIG_LOCAL)
 
     task :default => :up
 
@@ -39,7 +34,8 @@ namespace :aws do
             :'KeyName' => @key_name,
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
-            :'Debug' => @debug
+            :'Debug' => @debug,
+            :'InstanceType' => @aws_instance_type
         }
         params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
 
@@ -58,7 +54,8 @@ namespace :aws do
             :'KeyName' => @key_name,
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
-            :'Debug' => @debug
+            :'Debug' => @debug,
+            :'InstanceType' => @aws_instance_type
         }
         params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
 
