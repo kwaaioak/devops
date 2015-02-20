@@ -3,10 +3,13 @@
 @domain = ""
 @debug = ""
 @devops_bucket = ""
+@cloud     = 'aws'
 @availability_zone = ""
 @key_name = ""
-@image_id = "ami-864d84ee"
+@image_id = "ami-5c120b19"
 @knife_config = ""
+@berks_config = ""
 @aws_access_key_id      = ""
 @aws_secret_access_key  = ""
+@aws_instance_type      = "m3.large"
 @services = [ 'jenkins', 'jira', 'chef', 'stash' ]
