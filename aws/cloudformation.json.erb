@@ -9,12 +9,18 @@
         }, 
         "InstanceType": {
             "AllowedValues": [
-                "t1.micro", 
-                "m1.small", 
+                "t2.micro", 
+                "t2.small", 
+                "t2.medium", 
                 "m3.medium", 
                 "m3.large", 
                 "m3.xlarge", 
                 "m3.2xlarge", 
+                "c4.large", 
+                "c4.xlarge", 
+                "c4.2xlarge", 
+                "c4.4xlarge", 
+                "c4.8xlarge", 
                 "c3.large", 
                 "c3.xlarge", 
                 "c3.2xlarge", 
@@ -34,7 +40,7 @@
             ], 
             "ConstraintDescription": "must contain only alphanumeric characters.", 
             "Default": "m3.large", 
-            "Description": "Type of EC2 instance for web server", 
+            "Description": "Type of EC2 instance for application server", 
             "Type": "String"
         }, 
         "KeyName": {
