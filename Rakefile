@@ -16,11 +16,11 @@ end
 
 import "aws/Rakefile"
 
-task :upgrade, [ :snapshot ] => [ @cloud + ':upgrade' ] do |t, args|
+task :upgrade, [ :snapshot_id ] => [ @cloud + ':upgrade' ] do |t, args|
 end
 
-task :up, [ :snapshot ] => [ @cloud + ':up' ] do |t, args|
+task :up, [ :snapshot_id ] => [ @cloud + ':up' ] do |t, args|
 end
 
-task :destroy, [ :snapshot ] => [ @cloud + ':destroy' ] do |t, args|
+task :destroy, [ :snapshot_id ] => [ @cloud + ':destroy' ] do |t, args|
 end
