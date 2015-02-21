@@ -414,7 +414,7 @@
                             }, 
                             "/etc/chef/solo.rb": {
                                 "content": { "Fn::Join": [ "", [
-                                    { "Fn::If": [ "Debug", "log_level :debug\n", "" ] },
+                                    { "Fn::If": [ "Debug", "log_level :info\n", "" ] },
                                     "log_location \"/var/log/chef-solo.log\"\n", 
                                     "file_cache_path \"/var/lib/chef-solo\"\n", 
                                     "cookbook_path \"/var/lib/chef-solo/cookbooks\"\n", 
