@@ -76,6 +76,11 @@ template "#{node['bamboo']['install_root']}/atlassian-bamboo/atlassian-bamboo/WE
 	})
 end
 
+directory "#{node['bamboo']['home']}/atlassian-bamboo/work" do
+    mode 0644
+    owner "bamboo"
+end
+
 #
 # Currently disabled - it is very difficult to configure
 # bamboo.cfg.xml without getting into difficulties with
