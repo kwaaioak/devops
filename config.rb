@@ -12,4 +12,4 @@
 @aws_access_key_id      = ""
 @aws_secret_access_key  = ""
 @aws_instance_type      = "m3.large"
-@services = [ 'jenkins', 'jira', 'chef', 'stash' ]
+@services = [ 'jenkins', 'jira', 'chef', 'stash', 'bamboo' ]

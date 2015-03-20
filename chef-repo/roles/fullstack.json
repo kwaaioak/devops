@@ -17,6 +17,7 @@
         "recipe[jira]",
         "recipe[stash]",
         "recipe[chef-server]",
-        "recipe[jenkins::master]"
+        "recipe[jenkins::master]",
+        "recipe[bamboo]"
     ]
 }

@@ -3,6 +3,7 @@ default['bamboo']['node_name']               = 'bamboo.local.kwaaioak.com'
 default['bamboo']['port']                    = '8085'
 default['bamboo']['ssl_port']                = '8086'
 default['bamboo']['home']                    = '/var/lib/bamboo'
+default['bamboo']['install_root']            = '/opt'
 default['bamboo']['jvm']['extra_args']       = "-Djsse.enableSNIExtension=false"
 default['bamboo']['mysql']['host']           = 'localhost'
 default['bamboo']['mysql']['admin_username'] = 'root'

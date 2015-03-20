@@ -106,6 +106,10 @@ Vagrant.configure("2") do |config|
                     :port                 => '8090'
                 }
             },
+            :bamboo => {
+                :install_root             => '/mnt/storage',
+                :home                     => '/mnt/storage/bamboo'
+            },
             :'chef-server' => {
                 :configuration => {
                     :nginx => {

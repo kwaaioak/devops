@@ -253,6 +253,12 @@
                                     ] ] }, 
                                     "  },", 
 <% end %>
+<% if !@services.any? or @services.include? 'bamboo' %>
+                                    "  \"bamboo\": {", 
+                                    "    \"home\": \"/mnt/storage/bamboo\",", 
+                                    "    \"install_root\": \"/mnt/storage\"", 
+                                    "  },", 
+<% end %>
                                     "  \"storage\": {", 
                                     "    \"dirs\": [", 
                                     "      \"/var/lib/mysql\"", 

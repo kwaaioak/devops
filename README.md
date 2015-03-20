@@ -88,5 +88,5 @@ Creating a DevOps Server on Amazon
 ```bash
     $ sudo gem install bundler
     $ sudo bundle install
-    $ (cd aws && rake up )
+    $ rake up (or rake up[snapshot_id], to restore from a snapshot backup)
 ```

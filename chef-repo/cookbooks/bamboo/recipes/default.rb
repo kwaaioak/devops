@@ -62,11 +62,13 @@ directory "#{node['bamboo']['home']}/logs" do
   action :create
 end
 
-ark 'bamboo' do
+ark 'atlassian-bamboo' do
     url "http://www.atlassian.com/software/bamboo/downloads/binary/atlassian-bamboo-#{node['bamboo']['revision']}.tar.gz"
+    prefix_root node['bamboo']['install_root']
+    prefix_home node['bamboo']['install_root']
 end
 
-template "#{node['ark']['prefix_root']}/bamboo/atlassian-bamboo/WEB-INF/classes/bamboo-init.properties" do
+template "#{node['bamboo']['install_root']}/atlassian-bamboo/atlassian-bamboo/WEB-INF/classes/bamboo-init.properties" do
 	source "bamboo-init.properties.erb"
 	mode 0664
 	variables({
@@ -74,17 +76,22 @@ template "#{node['ark']['prefix_root']}/bamboo/atlassian-bamboo/WEB-INF/classes/
 	})
 end
 
-template "#{node['bamboo']['home']}/bamboo.cfg.xml" do
-	source "bamboo.cfg.xml.erb"
-	mode 0664
-	variables({
-    	:db_name => node['bamboo']['mysql']['dbname'],
-    	:db_username => node['bamboo']['mysql']['app_username'],
-    	:db_password => node['bamboo']['mysql']['app_password'],
-    	:server_id => node['bamboo']['server_id'],
-    	:license_string => node['bamboo']['license_string'],
-	})
-end
+#
+# Currently disabled - it is very difficult to configure
+# bamboo.cfg.xml without getting into difficulties with
+# the license configuration
+#
+#template "#{node['bamboo']['home']}/bamboo.cfg.xml" do
+#	source "bamboo.cfg.xml.erb"
+#	mode 0664
+#	variables({
+#    	:db_name => node['bamboo']['mysql']['dbname'],
+#    	:db_username => node['bamboo']['mysql']['app_username'],
+#    	:db_password => node['bamboo']['mysql']['app_password'],
+#    	:server_id => node['bamboo']['server_id'],
+#    	:license_string => node['bamboo']['license_string'],
+#	})
+#end
 
 ## Configure maximum and minimum memory
 ## sed -i 's!\(JVM_MINIMUM_MEMORY="\).*\(m"\)!\1'$STASH_MINIMUM_MEMORY'\2!g' /opt/atlassian/stash/bin/setenv.sh
@@ -93,19 +100,19 @@ end
 ark 'mysql-connector' do
     url 'http://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.30.tar.gz'
 end
-link "#{node['ark']['prefix_root']}/bamboo/lib/mysql-connector-java-5.1.30-bin.jar" do
+link "#{node['bamboo']['install_root']}/atlassian-bamboo/lib/mysql-connector-java-5.1.30-bin.jar" do
     to "/usr/local/mysql-connector/mysql-connector-java-5.1.30-bin.jar"
 end
 
 # Overwrite server.xml, allowing us to support an HTTPS reverse proxy
-template "#{node['ark']['prefix_root']}/bamboo/conf/server.xml" do
-  source "server.xml.erb"
-  mode 0664
-  variables({
-    :node_name => node['bamboo']['node_name'],
-    :port      => node['bamboo']['port'],
-    :ssl_port  => node['bamboo']['ssl_port']
-  })
+template "#{node['bamboo']['install_root']}/atlassian-bamboo/conf/server.xml" do
+    source "server.xml.erb"
+    mode 0664
+    variables({
+        :node_name => node['bamboo']['node_name'],
+        :port      => node['bamboo']['port'],
+        :ssl_port  => node['bamboo']['ssl_port']
+    })
 end
 
 #
@@ -124,7 +131,7 @@ end
 
 ruby_block "Disable Java SSE extensions" do
     block do
-        fe = Chef::Util::FileEdit.new("#{node['ark']['prefix_root']}/bamboo/bin/setenv.sh")
+        fe = Chef::Util::FileEdit.new("#{node['bamboo']['install_root']}/atlassian-bamboo/bin/setenv.sh")
         fe.search_file_replace_line(
             /^JVM_SUPPORT_RECOMMENDED_ARGS=/,
             "JVM_SUPPORT_RECOMMENDED_ARGS=\"#{node['bamboo']['jvm']['extra_args']}\"")
@@ -134,7 +141,7 @@ end
 
 ruby_block "Set Bamboo catalina.out" do
     block do
-        fe = Chef::Util::FileEdit.new("#{node['ark']['prefix_root']}/bamboo/bin/setenv.sh")
+        fe = Chef::Util::FileEdit.new("#{node['bamboo']['install_root']}/atlassian-bamboo/bin/setenv.sh")
         fe.insert_line_if_no_match(
             /^CATALINA_OUT=/,
             "CATALINA_OUT=\"#{node['bamboo']['home']}/logs/catalina.out\"")
@@ -150,13 +157,13 @@ template "/etc/init.d/bamboo" do
 	source "bamboo.initd.erb"
 	mode 0755
 	variables({
-    	:install_dir => "#{node['ark']['prefix_root']}/bamboo",
+    	:install_dir => "#{node['bamboo']['install_root']}/atlassian-bamboo",
     	:home_dir    => node['bamboo']['home']
 	})
 end
 
 service 'bamboo' do
-  supports :start => true, :stop => true, :restart => true
-  init_command "/etc/init.d/bamboo"
-  action [ :enable, :start ]
+    supports :start => true, :stop => true, :restart => true
+    init_command "/etc/init.d/bamboo"
+    action [ :enable, :start ]
 end
