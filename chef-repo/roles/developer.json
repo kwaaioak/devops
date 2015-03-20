@@ -1,0 +1,11 @@
+{
+    "name": "developer",
+    "chef_type": "role",
+    "json_class": "Chef::Role",
+    "description": "Role for Developers servers running a full stack operation with dev tools",
+    "override_attributes": {
+    },
+    "run_list": [
+        "role[fullstack]"
+    ]
+}

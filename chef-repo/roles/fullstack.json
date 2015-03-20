@@ -1,0 +1,22 @@
+{
+    "name": "fullstack",
+    "chef_type": "role",
+    "json_class": "Chef::Role",
+    "description": "Role for DevOps servers running a full stack operation",
+    "override_attributes": {
+    },
+    "run_list": [
+        "recipe[apt]",
+        "recipe[storage]",
+        "recipe[postfix]",
+        "recipe[mysql::server]",
+        "recipe[mysql-backup]",
+        "recipe[mysql-backup::restore]",
+        "recipe[apache2]",
+        "recipe[reverse-proxy]",
+        "recipe[jira]",
+        "recipe[stash]",
+        "recipe[chef-server]",
+        "recipe[jenkins::master]"
+    ]
+}
