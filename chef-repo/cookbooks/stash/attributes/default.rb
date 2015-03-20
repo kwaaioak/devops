@@ -1,4 +1,4 @@
-default['stash']['revision']                = '3.6.1'
+default['stash']['revision']                = '3.7.1'
 default['stash']['node_name']               = 'stash.local.kwaaioak.com'
 default['stash']['port']                    = '7990'
 default['stash']['ssl_port']                = '7991'

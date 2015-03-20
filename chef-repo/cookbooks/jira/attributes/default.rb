@@ -1,4 +1,4 @@
-default['jira']['revision']                 = '6.3.15'
+default['jira']['revision']                 = '6.4'
 default['jira']['node_name']                = 'jira.local.kwaaioak.com'
 default['jira']['home']                     = '/var/lib/jira'
 default['jira']['user']                     = 'jira'
