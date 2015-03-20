@@ -107,6 +107,7 @@ Vagrant.configure("2") do |config|
                 }
             },
             :bamboo => {
+                :node_name                => 'bamboo.local.kwaaioak.com',
                 :install_root             => '/mnt/storage',
                 :home                     => '/mnt/storage/bamboo'
             },

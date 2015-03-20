@@ -255,6 +255,9 @@
 <% end %>
 <% if !@services.any? or @services.include? 'bamboo' %>
                                     "  \"bamboo\": {", 
+                                    { "Fn::Join": [ "", [
+                                    \"        node_name\": \"bamboo.", { "Ref": "ZoneName" }, "\","
+                                    ] ] }, 
                                     "    \"home\": \"/mnt/storage/bamboo\",", 
                                     "    \"install_root\": \"/mnt/storage\"", 
                                     "  },", 
