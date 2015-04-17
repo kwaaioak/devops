@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion": "2010-09-09", 
-    "Description": "Kwaai Oak DevOps (Full Stack Server)",
+    "Description": "Kwaai Oak DevOps (Single Server Full Stack)",
     "Parameters": {
         "AvailabilityZone": {
             "Default": "us-east-1a", 
@@ -229,19 +229,19 @@
                                     "    \"recipe[apache2]\",", 
                                     "    \"recipe[reverse-proxy]\"",<% runlist_one = true %>
 <% if !@services.any? or @services.include? 'jenkins' %>
-                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[jenkins::master]\"", 
+                                    "    <%  if runlist_one %>,<% end; runlist_one = true %>\"recipe[jenkins::master]\"", 
 <% end %>
 <% if !@services.any? or @services.include? 'chef' %>
-                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[chef-server]\"",
+                                    "    <%  if runlist_one %>,<% end; runlist_one = true %>\"recipe[chef-server]\"",
 <% end %>
 <% if !@services.any? or @services.include? 'jira' %>
-                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[jira]\"",
+                                    "    <%  if runlist_one %>,<% end; runlist_one = true %>\"recipe[jira]\"",
 <% end %>
 <% if !@services.any? or @services.include? 'stash' %>
-                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[stash]\"",
+                                    "    <%  if runlist_one %>,<% end; runlist_one = true %>\"recipe[stash]\"",
 <% end %>
 <% if !@services.any? or @services.include? 'bamboo' %>
-                                    "    <%  if defined? runlist_one %>,<%  runlist_one = true end %>\"recipe[bamboo]\"",
+                                    "    <%  if runlist_one %>,<% end; runlist_one = true %>\"recipe[bamboo]\"",
 <% end %>
                                     "  ],", 
 <% if !@services.any? or @services.include? 'stash' %>
@@ -256,7 +256,7 @@
 <% if !@services.any? or @services.include? 'bamboo' %>
                                     "  \"bamboo\": {", 
                                     { "Fn::Join": [ "", [
-                                    \"        node_name\": \"bamboo.", { "Ref": "ZoneName" }, "\","
+                                    "    \"node_name\": \"bamboo.", { "Ref": "ZoneName" }, "\","
                                     ] ] }, 
                                     "    \"home\": \"/mnt/storage/bamboo\",", 
                                     "    \"install_root\": \"/mnt/storage\"", 
@@ -337,9 +337,7 @@
                                     "  \"reverse-proxy\": {",
                                     "    \"apps\": {",
 <% if !@services.any? or @services.include? 'jenkins' %>
-<%  if defined? one_reverse_proxy %>
-                                    "        ,",
-<%  one_reverse_proxy = true end %>
+<%  one_reverse_proxy = true %>
                                     "        \"jenkins\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"jenkins.", { "Ref": "ZoneName" }, "\","
@@ -349,9 +347,9 @@
                                     "        }",
 <% end %>
 <% if !@services.any? or @services.include? 'chef' %>
-<%  if defined? one_reverse_proxy %>
+<%  if one_reverse_proxy %>
                                     "        ,",
-<%  one_reverse_proxy = true end %>
+<%  end; one_reverse_proxy = true %>
                                     "        \"chef\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"chef.", { "Ref": "ZoneName" }, "\","
@@ -361,9 +359,9 @@
                                     "        }",
 <% end %>
 <% if !@services.any? or @services.include? 'jira' %>
-<%  if defined? one_reverse_proxy %>
+<%  if one_reverse_proxy %>
                                     "        ,",
-<%  one_reverse_proxy = true end %>
+<%  end; one_reverse_proxy = true %>
                                     "        \"jira\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"jira.", { "Ref": "ZoneName" }, "\","
@@ -373,9 +371,9 @@
                                     "        }",
 <% end %>
 <% if !@services.any? or @services.include? 'stash' %>
-<%  if defined? one_reverse_proxy %>
+<%  if one_reverse_proxy %>
                                     "        ,",
-<%  one_reverse_proxy = true end %>
+<%  end; one_reverse_proxy = true %>
                                     "        \"stash\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"stash.", { "Ref": "ZoneName" }, "\","
@@ -385,9 +383,9 @@
                                     "        }",
 <% end %>
 <% if !@services.any? or @services.include? 'bamboo' %>
-<%  if defined? one_reverse_proxy %>
+<%  if one_reverse_proxy %>
                                     "        ,",
-<%  one_reverse_proxy = true end %>
+<%  end; one_reverse_proxy = true %>
                                     "        \"bamboo\": {",
                                     { "Fn::Join": [ "", [
                                         "            \"node_name\": \"bamboo.", { "Ref": "ZoneName" }, "\","
