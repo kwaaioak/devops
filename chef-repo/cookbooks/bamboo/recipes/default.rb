@@ -76,10 +76,12 @@ template "#{node['bamboo']['install_root']}/atlassian-bamboo/atlassian-bamboo/WE
 	})
 end
 
-directory "#{node['bamboo']['home']}/atlassian-bamboo/work" do
+directory "#{node['bamboo']['home']}/atlassian-bamboo" do
     mode 0644
     owner "bamboo"
+    recursive true
 end
+
 
 #
 # Currently disabled - it is very difficult to configure
