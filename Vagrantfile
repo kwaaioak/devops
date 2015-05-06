@@ -115,6 +115,7 @@ Vagrant.configure("2") do |config|
                 :'api_fqdn' => 'chef.local.kwaaioak.com',
                 :configuration => {
                     :nginx => {
+                        :enable_non_ssl     => true,
                         :non_ssl_port       => 8083,
                         :ssl_port           => 4433
                     },
