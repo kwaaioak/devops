@@ -11,5 +11,5 @@ supports 'debian'
 
 depends 'java'
 depends 'ark'
-depends 'database'
+depends 'database', '~> 2.3.0'
 depends 'git'
