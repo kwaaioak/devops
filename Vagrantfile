@@ -74,7 +74,7 @@ Vagrant.configure("2") do |config|
             },
             :apache => {
                 :version              => "2.4",
-                :listen_ports         => %w[80, 8081]
+                :listen_ports         => %w[80]
             },
             :mysql  => {
                 :server_root_password   => "password",
