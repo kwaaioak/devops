@@ -112,6 +112,7 @@ Vagrant.configure("2") do |config|
                 :home                     => '/mnt/storage/bamboo'
             },
             :'chef-server' => {
+                :'api_fqdn' => 'chef.local.kwaaioak.com',
                 :configuration => {
                     :nginx => {
                         :non_ssl_port       => 8083,
@@ -120,13 +121,15 @@ Vagrant.configure("2") do |config|
                     :rabbitmq => {
                         :data_dir           => '/mnt/storage/chef-server/rabbitmq/data'
                     },
-                    :'chef-solr' => {
-                        :data_dir           => '/mnt/storage/chef-server/chef-solr/data'
+                    :'opscode-solr' => {
+                        :data_dir           => '/mnt/storage/chef-server/opscode-solr/data'
                     },
                     :bookshelf => {
+                        :dir                => '/mnt/storage/chef-server/bookshelf',
                         :data_dir           => '/mnt/storage/chef-server/bookshelf/data'
                     },
                     :postgresql => {
+                        :home               => '/mnt/storage/chef-server/postgresql',
                         :data_dir           => '/mnt/storage/chef-server/postgresql/data'
                     }
                 }

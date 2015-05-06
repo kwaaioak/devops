@@ -305,6 +305,7 @@
                                     "  },",
 <% if !@services.any? or @services.include? 'chef' %>
                                     "  \"chef-server\": {",
+                                    "    \"api_fqdn\": \"chef.", { "Ref": "ZoneName" }, "\",",
                                     "    \"configuration\": {",
                                     "      \"nginx\": {",
                                     "        \"enable_non_ssl\": true,",
@@ -314,10 +315,11 @@
                                     "      \"rabbitmq\": {",
                                     "        \"data_dir\": \"/mnt/storage/chef-server/rabbitmq/data\"",
                                     "      }, ",
-                                    "      \"chef-solr\": {",
-                                    "        \"data_dir\": \"/mnt/storage/chef-server/chef-solr/data\"",
+                                    "      \"opscode-solr\": {",
+                                    "        \"data_dir\": \"/mnt/storage/chef-server/opscode-solr/data\"",
                                     "      }, ",
                                     "      \"bookshelf\": {",
+                                    "        \"dir\": \"/mnt/storage/chef-server/bookshelf\",",
                                     "        \"data_dir\": \"/mnt/storage/chef-server/bookshelf/data\",",
                                     { "Fn::Join": [ "", [
                                     "        \"external_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
@@ -329,6 +331,7 @@
                                     ] ] }, 
                                     "      }, ",
                                     "      \"postgresql\": {",
+                                    "        \"home\": \"/mnt/storage/chef-server/postgresql\",",
                                     "        \"data_dir\": \"/mnt/storage/chef-server/postgresql/data\"",
                                     "      } ",
                                     "    }",
