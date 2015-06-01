@@ -1,5 +1,6 @@
 default['storage']['mount_path']              = '/mnt/storage'
 default['storage']['dirs']                     = nil
+default['storage']['bind_dirs']                = nil
 default['storage']['mount_type']               = nil
 default['storage']['mount_device']             = '/dev/xvdi'
 default['storage']['description']              = nil

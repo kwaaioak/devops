@@ -54,7 +54,35 @@ if node['storage']['mount_type'] == 'aws_ebs'
 end
 
 #
-# Stage directories that need permanent storage
+# Bind mount directories that need permanent storage
+#
+node['storage']['bind_dirs'].each do |dir|
+  dest = File.basename(dir)
+
+  ruby_block "copy source directory" do
+    block do
+      FileUtils.cp_r(dir, "#{node['storage']['mount_path']}/#{dest}")
+      FileUtils.rm_rf(dir)
+    end
+    
+    only_if { File.directory?(dir) }
+    not_if { File.directory?("#{node['storage']['mount_path']}/#{dest}") }
+  end
+
+  # Make sure both the source and destination directories exist  
+  directory "#{node['storage']['mount_path']}/#{dest}"
+  directory dir
+
+  mount dir do
+    device "#{node['storage']['mount_path']}/#{dest}"
+    fstype "none"
+    options "bind,rw"
+    action [ :mount, :enable ]
+  end
+end
+
+#
+# Symlink directories that need permanent storage
 #
 node['storage']['dirs'].each do |dir|
   dest = File.basename(dir)
@@ -69,8 +97,7 @@ node['storage']['dirs'].each do |dir|
     not_if { File.directory?("#{node['storage']['mount_path']}/#{dest}") }
   end
   
-  directory "#{node['storage']['mount_path']}/#{dest}" do
-  end
+  directory "#{node['storage']['mount_path']}/#{dest}"
 
   link dir do
     to "#{node['storage']['mount_path']}/#{dest}"

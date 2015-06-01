@@ -2,4 +2,4 @@
 config.local.rb
 Gemfile.lock
 Berksfile.lock
-
+chef_repo.tar.gz

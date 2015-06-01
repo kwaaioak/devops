@@ -59,8 +59,12 @@
             "Description": "A description of the stack", 
             "Type": "String"
         }, 
-        "RecipeURL": {
+        "ChefRepoURL": {
             "Description": "The location of the recipe tarball", 
+            "Type": "String"
+        }, 
+        "ChefCookbooksURL": {
+            "Description": "The location of the cookbooks tarball", 
             "Type": "String"
         }, 
         "SnapshotId": {
@@ -137,8 +141,8 @@
                 "AWS::CloudFormation::Init": {
                     "configSets": {
                         "default": [ { "ConfigSet": "install" } ],
-                        "install": [ "install_cfn", "install_chef", "run_chef" ],
-                        "update": [ "run_chef" ]
+                        "install": [ "install_cfn", "install_chef", "unpack_repo", "run_chef" ],
+                        "update": [ "unpack_repo", "run_chef" ]
                     },
                     "install_cfn": {
                         "files": {
@@ -169,7 +173,7 @@
                     "install_chef": {
                         "files": {
                             "/tmp/install-chef.sh": {
-                                "source": "https://www.opscode.com/chef/install.sh",
+                                "source": "https://www.chef.io/chef/install.sh",
                                 "mode": "0600",
                                 "owner": "root",
                                 "group": "root"
@@ -263,7 +267,7 @@
                                     "  },", 
 <% end %>
                                     "  \"storage\": {", 
-                                    "    \"dirs\": [", 
+                                    "    \"bind_dirs\": [", 
                                     "      \"/var/lib/mysql\"", 
 <% if !@services.any? or @services.include? 'stash' %>
                                     "      ,\"/var/lib/stash\"", 
@@ -281,7 +285,12 @@
                                     "      ,\"/var/lib/jira\"", 
 <% end %>
 <% if !@services.any? or @services.include? 'chef' %>
-                                    "      ,\"/etc/chef-server\"", 
+                                    "      ,\"/var/opt/opscode\"", 
+<% end %>
+                                    "    ],", 
+                                    "    \"dirs\": [", 
+<% if !@services.any? or @services.include? 'chef' %>
+                                    "      \"/etc/chef-server\"", 
 <% end %>
                                     "    ],", 
                                     "    \"mount_type\": \"aws_ebs\",", 
@@ -305,35 +314,25 @@
                                     "  },",
 <% if !@services.any? or @services.include? 'chef' %>
                                     "  \"chef-server\": {",
-                                    "    \"api_fqdn\": \"chef.", { "Ref": "ZoneName" }, "\",",
+                                    { "Fn::Join": [ "", [
+                                    "    \"api_fqdn\": \"chef.", { "Ref": "ZoneName" }, "\","
+                                    ] ] }, 
                                     "    \"configuration\": {",
                                     "      \"nginx\": {",
                                     "        \"enable_non_ssl\": true,",
-                                    "        \"non_ssl_port\": \"8083\",",
-                                    "        \"ssl_port\": \"4433\"",
-                                    "      }, ",
-                                    "      \"rabbitmq\": {",
-                                    "        \"data_dir\": \"/mnt/storage/chef-server/rabbitmq/data\"",
-                                    "      }, ",
-                                    "      \"opscode-solr\": {",
-                                    "        \"data_dir\": \"/mnt/storage/chef-server/opscode-solr/data\"",
+                                    "        \"non_ssl_port\": 8083,",
+                                    "        \"ssl_port\": 4433",
                                     "      }, ",
                                     "      \"bookshelf\": {",
-                                    "        \"dir\": \"/mnt/storage/chef-server/bookshelf\",",
-                                    "        \"data_dir\": \"/mnt/storage/chef-server/bookshelf/data\",",
                                     { "Fn::Join": [ "", [
                                     "        \"external_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
                                     ] ] }, 
                                     "      }, ",
-                                    "      \"erchef\": {",
+                                    "      \"opscode-erchef\": {",
                                     { "Fn::Join": [ "", [
                                     "        \"base_resource_url\": \"https://chef.", { "Ref": "ZoneName" }, "\""
                                     ] ] }, 
-                                    "      }, ",
-                                    "      \"postgresql\": {",
-                                    "        \"home\": \"/mnt/storage/chef-server/postgresql\",",
-                                    "        \"data_dir\": \"/mnt/storage/chef-server/postgresql/data\"",
-                                    "      } ",
+                                    "      }",
                                     "    }",
                                     "  },",
 <% end %>
@@ -427,10 +426,8 @@
                                     { "Fn::If": [ "Debug", "log_level :info\n", "" ] },
                                     "log_location \"/var/log/chef-solo.log\"\n", 
                                     "file_cache_path \"/var/lib/chef-solo\"\n", 
-                                    "cookbook_path \"/var/lib/chef-solo/cookbooks\"\n", 
-                                    "json_attribs \"/etc/chef/node.json\"\n", 
-                                    "recipe_url ",
-                                    "\"", { "Ref": "RecipeURL" }, "\"\n"
+                                    "chef_repo_path \"/var/lib/chef-solo\"\n", 
+                                    "json_attribs \"/etc/chef/node.json\"\n"
                                 ] ] }, 
                                 "group": "root", 
                                 "mode": "0644", 
@@ -439,15 +436,45 @@
                         }, 
                         "commands" : {
                             "01_install_chef" : {
-                                "command" : "bash /tmp/install-chef.sh -v 11.16",
+                                "command" : "bash /tmp/install-chef.sh",
+                                "cwd" : "/tmp"
+                            }
+                        }
+                    },
+                    "unpack_repo" : {
+                        "files" : {
+                            "/tmp/chef_repo.tar.gz": {
+                                "source": { "Ref": "ChefRepoURL" },
+                                "mode": "0600",
+                                "owner": "root",
+                                "group": "root"
+                            },
+                            "/tmp/cookbooks.tar.gz": {
+                                "source": { "Ref": "ChefCookbooksURL" },
+                                "mode": "0600",
+                                "owner": "root",
+                                "group": "root"
+                            }
+                        },
+                        "commands" : {
+                            "01_create_chef_dir" : {
+                                "command" : "mkdir -p /var/lib/chef-solo"
+                            },
+                            "02_unpack_chef_repo" : {
+                                "command" : "tar -zxvf /tmp/chef_repo.tar.gz -C /var/lib/chef-solo",
+                                "cwd" : "/tmp"
+                            },
+                            "03_unpack_cookbooks" : {
+                                "command" : "tar -zxvf /tmp/cookbooks.tar.gz -C /var/lib/chef-solo",
                                 "cwd" : "/tmp"
                             }
                         }
                     },
                     "run_chef" : {
                         "commands" : {
-                            "01_run_chef_client" : {
-                                "command" : "export HOME=/root && chef-solo"
+                            "01_run_chef_solo" : {
+                                "command" : "export HOME=/root && echo /usr/bin/chef-solo -c /etc/chef/solo.rb -j /etc/chef/node.json -l debug",
+                                "env" : { "HOME" : "/var/lib/chef-solo" }
                             }
                         }
                     }
@@ -477,6 +504,12 @@
                         "\n", 
                         "easy_install /root/aws-cfn-bootstrap-latest/", 
                         "\n", 
+                        "# Helper function\n",
+                        "function error_exit\n",
+                        "{\n",
+                        "#  /usr/local/bin/cfn-signal -e 1 -r \"$1\" '", { "Ref" : "DevOpsServerWaitHandle" }, "'\n",
+                        "  exit 1\n",
+                        "}\n",
                         "cfn-init -s ", { "Ref": "AWS::StackName" }, 
                         " -r DevOpsServerInstance ", 
                         "         --access-key ", { "Ref": "HostKeys" }, 
@@ -589,7 +622,7 @@
             }
         }, 
         "DevOpsServerVolume": {
-            "DeletionPolicy": "Snapshot",
+            "DeletionPolicy": "Delete",
             "Properties": {
                 "AvailabilityZone": { "Ref": "AvailabilityZone" }, 
                 "Iops": 100, 

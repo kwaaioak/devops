@@ -14,23 +14,29 @@ namespace :aws do
         end
     end
 
-    task :upload_recipes do
+    task :upload_repo do
+        knife_opts="--config=#{@knife_config}" if @knife_config
+
         berksfile=File.dirname(__FILE__) + '/../Berksfile'
         cookbooks_tarball=File.dirname(__FILE__) + '/cookbooks.tar.gz'
         sh "berks package -b #{berksfile} #{cookbooks_tarball}"
-
-        knife_opts="--config=#{@knife_config}" if @knife_config
         sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{cookbooks_tarball} -r cookbooks.tar.gz"
+
+        chef_repo_tarball=File.dirname(__FILE__) + '/chef_repo.tar.gz'
+        chef_repo_dir=File.dirname(__FILE__) + '/../chef-repo'
+        sh "tar -zcvf #{chef_repo_tarball} -C #{chef_repo_dir} ./"
+        sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{chef_repo_tarball} -r chef_repo.tar.gz"
     end
 
-    task :up, [ :snapshot_id ] => [ CLOUDFORMATION_JSON, :upload_recipes ] do | t, args |
+    task :up, [ :snapshot_id ] => [ CLOUDFORMATION_JSON, :upload_repo ] do | t, args |
         snapshot_id = args[:snapshot_id]
 
         params = {
             :'StackName' => @stack_name,
             :'Description' => "#{@description} (#{@stack_name})",
             :'ImageId' => @image_id,
-            :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
+            :'ChefRepoURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/chef_repo.tar.gz',
+            :'ChefCookbooksURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
             :'KeyName' => @key_name,
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
@@ -43,7 +49,7 @@ namespace :aws do
         sh "knife cfn #{knife_opts} create #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
     end
 
-    task :update => [ CLOUDFORMATION_JSON, :upload_recipes ] do | t, args |
+    task :update => [ CLOUDFORMATION_JSON, :upload_repo ] do | t, args |
         snapshot_id = args[:snapshot_id]
 
         params = {
