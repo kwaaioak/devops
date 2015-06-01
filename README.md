@@ -5,16 +5,16 @@ A one-stop built-it-yourself server for managing an engineering project.
 Storage is managed using block storage (e.g. EBS) and snapshots are taken on a regular basis.
 
 Can install the following:
-    * Atlassian JIRA
-    * Atlassian Stash
-    * Atlassian Bamboo
-    * Chef
-    * Jenkins CI
+* Atlassian JIRA
+* Atlassian Stash
+* Atlassian Bamboo
+* Chef
+* Jenkins CI
 
 The following provisioning software/clouds are supported:
-    * Vagrant
-    * Amazon Web Services
-    * Microsoft Azure (storage not yet supported)
+* Vagrant
+* Amazon Web Services
+* Microsoft Azure (storage not yet supported)
 
 Getting Started for First Run
 -----------------------------
@@ -66,14 +66,14 @@ Run the following:
 Creating a DevOps Server on Amazon
 ===================================
 * Make sure you have an access key and secret access key in AWS with the following permissions:
-    AmazonEC2FullAccess
-    IAMFullAccess (you may want a restricted set of permissions, but the CloudFormation template will create an IAM user just for the stack)
-    AmazonRoute53FullAccess
-    AmazonS3FullAccess
-    CloudFormation (there isn't a policy for this, so create a custom policy with full access to CloudFormation)
+    * AmazonEC2FullAccess
+    * IAMFullAccess (you may want a restricted set of permissions, but the CloudFormation template will create an IAM user just for the stack)
+    * AmazonRoute53FullAccess
+    * AmazonS3FullAccess
+    * CloudFormation (there isn't a policy for this, so create a custom policy with full access to CloudFormation)
 * Create an EC2 Key Pair in the region you'll be using (e.g. KWAAIOAK_DEVOPS_USEAST)
     * Download the .pem to ~/.ssh/ (and fix permissions to 0600)
-* Create an S3 bucket
+* Create an S3 bucket (this must be publicly accessible, as only the chef repo is uploaded, no sensitive information is made public by default)
 * Customize any values you want from aws/config.rb and save it as aws/config.local.rb
     * Add the EC2 Key Pair name to @key_name
     * Use the S3 bucket just created in @devops_bucket
