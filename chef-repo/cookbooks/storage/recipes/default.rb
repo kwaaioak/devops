@@ -108,7 +108,7 @@ end
 # Backup scheduler
 #
 if node['storage']['mount_type'] == 'aws_ebs'
-  template '/etc/chef/snapshot.json' do
+  template node['storage']['backup']['chef_attrib_file'] do
     source 'snapshot.json.erb'
     variables(
       :output => {
@@ -134,12 +134,6 @@ if node['storage']['mount_type'] == 'aws_ebs'
 
   template '/etc/cron.d/snapshot' do
     source 'cron.d.erb'
-    variables(
-      :json_attribs => '/etc/chef/snapshot.json',
-      :schedule => node['storage']['backup']['schedule'],
-      :log_level => 'info',
-      :log_file => '/var/log/snapshot.log'
-    )
     owner 'root'
     group 'root'
     mode 0600

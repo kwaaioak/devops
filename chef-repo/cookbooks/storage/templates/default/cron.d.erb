@@ -1,3 +1,3 @@
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
-<% cs = "chef-solo -j #{@json_attribs} -l #{@log_level} -L #{@log_file}" %>
-<%= @schedule %> root <%= cs %>
+<% cs = "chef-client -z -c #{node['storage']['backup']['chef_config_file']} -j #{node['storage']['backup']['chef_attrib_file']} -l #{node['storage']['backup']['log_level']} -L #{node['backup']['log_file']}" %>
+<%= node['storage']['backup']['schedule'] %> root <%= cs %>
