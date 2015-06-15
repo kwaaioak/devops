@@ -4,9 +4,9 @@
 @debug = ""
 @devops_bucket = ""
 @cloud     = 'aws'
-@availability_zone = ""
+@availability_zone = "us-west-2a"
 @key_name = ""
-@image_id = "ami-5c120b19"
+@image_id = "ami-57e8d767"
 @knife_config = ""
 @berks_config = ""
 @aws_access_key_id      = ""
