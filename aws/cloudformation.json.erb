@@ -421,12 +421,12 @@
                                 "mode": "0644", 
                                 "owner": "root"
                             }, 
-                            "/etc/chef/solo.rb": {
+                            "/etc/chef/zero.rb": {
                                 "content": { "Fn::Join": [ "", [
                                     { "Fn::If": [ "Debug", "log_level :info\n", "" ] },
-                                    "log_location \"/var/log/chef-solo.log\"\n", 
-                                    "file_cache_path \"/var/lib/chef-solo\"\n", 
-                                    "chef_repo_path \"/var/lib/chef-solo\"\n", 
+                                    "log_location \"/var/log/chef-zero.log\"\n", 
+                                    "file_cache_path \"/var/lib/chef-zero\"\n", 
+                                    "chef_repo_path \"/var/lib/chef-zero\"\n", 
                                     "json_attribs \"/etc/chef/node.json\"\n"
                                 ] ] }, 
                                 "group": "root", 
@@ -458,23 +458,23 @@
                         },
                         "commands" : {
                             "01_create_chef_dir" : {
-                                "command" : "mkdir -p /var/lib/chef-solo"
+                                "command" : "mkdir -p /var/lib/chef-zero"
                             },
                             "02_unpack_chef_repo" : {
-                                "command" : "tar -zxvf /tmp/chef_repo.tar.gz -C /var/lib/chef-solo",
+                                "command" : "tar -zxvf /tmp/chef_repo.tar.gz -C /var/lib/chef-zero",
                                 "cwd" : "/tmp"
                             },
                             "03_unpack_cookbooks" : {
-                                "command" : "tar -zxvf /tmp/cookbooks.tar.gz -C /var/lib/chef-solo",
+                                "command" : "tar -zxvf /tmp/cookbooks.tar.gz -C /var/lib/chef-zero",
                                 "cwd" : "/tmp"
                             }
                         }
                     },
                     "run_chef" : {
                         "commands" : {
-                            "01_run_chef_solo" : {
-                                "command" : "export HOME=/root && echo /usr/bin/chef-solo -c /etc/chef/solo.rb -j /etc/chef/node.json -l debug",
-                                "env" : { "HOME" : "/var/lib/chef-solo" }
+                            "01_run_chef" : {
+                                "command" : "/usr/bin/chef-client -z -c /etc/chef/zero.rb -j /etc/chef/node.json -l debug",
+                                "env" : { "HOME" : "/var/lib/chef-zero" }
                             }
                         }
                     }
