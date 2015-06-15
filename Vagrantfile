@@ -64,12 +64,13 @@ Vagrant.configure("2") do |config|
             },
             :storage => {
                 :mount_path           => '/mnt/storage',
-                :dirs                 => [
+                :bind_dirs                 => [
                     '/var/lib/stash',
                     '/var/lib/git',
                     '/var/lib/jenkins',
                     '/var/lib/jira',
-                    '/var/lib/bamboo'
+                    '/var/lib/bamboo',
+                    '/var/opt/opscode'
                 ]
             },
             :apache => {
@@ -119,19 +120,11 @@ Vagrant.configure("2") do |config|
                         :non_ssl_port       => 8083,
                         :ssl_port           => 4433
                     },
-                    :rabbitmq => {
-                        :data_dir           => '/mnt/storage/chef-server/rabbitmq/data'
-                    },
-                    :'opscode-solr' => {
-                        :data_dir           => '/mnt/storage/chef-server/opscode-solr/data'
+                    :'opscode-erchef' => {
+                        :base_resource_url  => 'https://chef.local.kwaaioak.com'
                     },
                     :bookshelf => {
-                        :dir                => '/mnt/storage/chef-server/bookshelf',
-                        :data_dir           => '/mnt/storage/chef-server/bookshelf/data'
-                    },
-                    :postgresql => {
-                        :home               => '/mnt/storage/chef-server/postgresql',
-                        :data_dir           => '/mnt/storage/chef-server/postgresql/data'
+                        :external_url       => 'https://chef.local.kwaaioak.com'
                     }
                 }
             }
