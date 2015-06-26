@@ -72,6 +72,11 @@
             "Description": "An existing snapshot to initialize storage with (use for data recovery)", 
             "Type": "String"
         }, 
+        "DiskSize": {
+            "Default": "", 
+            "Description": "The size of the storage disk", 
+            "Type": "Integer"
+        }, 
         "Debug": {
             "Default": "", 
             "Description": "If not empty, turn on debugging (and increase timeout to max values)", 
@@ -626,7 +631,7 @@
             "Properties": {
                 "AvailabilityZone": { "Ref": "AvailabilityZone" }, 
                 "Iops": 100, 
-                "Size": 15, 
+                "Size": { "Ref": "DiskSize" }, 
                 "SnapshotId": {
                     "Fn::If": [
                         "CreateFromSnapshot",

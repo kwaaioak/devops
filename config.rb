@@ -12,4 +12,5 @@
 @aws_access_key_id      = ""
 @aws_secret_access_key  = ""
 @aws_instance_type      = "m3.large"
+@aws_disk_size = 15
 @services = [ 'jenkins', 'jira', 'chef', 'stash', 'bamboo' ]

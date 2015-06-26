@@ -41,7 +41,8 @@ namespace :aws do
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
             :'Debug' => @debug,
-            :'InstanceType' => @aws_instance_type
+            :'InstanceType' => @aws_instance_type,
+            :'DiskSize' => @aws_disk_size
         }
         params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
 
@@ -61,7 +62,8 @@ namespace :aws do
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
             :'Debug' => @debug,
-            :'InstanceType' => @aws_instance_type
+            :'InstanceType' => @aws_instance_type,
+            :'DiskSize' => @aws_disk_size
         }
         params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
 
