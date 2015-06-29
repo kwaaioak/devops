@@ -24,7 +24,7 @@ namespace :aws do
 
         chef_repo_tarball=File.dirname(__FILE__) + '/chef_repo.tar.gz'
         chef_repo_dir=File.dirname(__FILE__) + '/../chef-repo'
-        sh "tar -zcvf #{chef_repo_tarball} -C #{chef_repo_dir} ./"
+        sh "tar -zcvf #{chef_repo_tarball} -C #{chef_repo_dir} --exclude=cookbooks/ ./"
         sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{chef_repo_tarball} -r chef_repo.tar.gz"
     end
 
