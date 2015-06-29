@@ -1,4 +1,4 @@
-default['bamboo']['revision']                = '5.8.1'
+default['bamboo']['revision']                = '5.9.1'
 default['bamboo']['node_name']               = 'bamboo.local.kwaaioak.com'
 default['bamboo']['port']                    = '8085'
 default['bamboo']['ssl_port']                = '8086'
