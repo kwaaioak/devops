@@ -40,7 +40,6 @@ namespace :aws do
             :'KeyName' => @key_name,
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
-            :'Debug' => @debug,
             :'InstanceType' => @aws_instance_type,
             :'DiskSize' => @aws_disk_size
         }
@@ -62,11 +61,11 @@ namespace :aws do
             :'KeyName' => @key_name,
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
-            :'Debug' => @debug,
             :'InstanceType' => @aws_instance_type,
             :'DiskSize' => @aws_disk_size
         }
-        params['SnapshotId'] = snapshot_id if !snapshot_id.nil?
+        params['SnapshotId'] = snapshot_id if !snapshot_id.nil? && !snapshot_id.empty?
+        params['Debug'] = @debug if !@debug.nil? && !@debug.empty?
 
         knife_opts="--config=#{@knife_config}" if @knife_config
         sh "knife cfn #{knife_opts} update #{@stack_name} --capabilities CAPABILITY_IAM -f #{CLOUDFORMATION_JSON} --parameters '" + params.map{|k,v| "#{k}=#{v}"}.join(';') + "'"
