@@ -416,7 +416,7 @@
                                     ] ] }, 
                                     "        \"certificate\": {",
                                     { "Fn::Join": [ "", [
-                                        "            \"common_name\": \"", { "Ref": "ZoneName" }, "\""
+                                        "            \"common_name\": \"*.", { "Ref": "ZoneName" }, "\""
                                     ] ] }, 
                                     "        }",
                                     "    }",
