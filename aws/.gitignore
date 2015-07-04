@@ -1,3 +1,5 @@
 cloudformation.json
 cookbooks
-cookbooks.tar.gz
+cookbooks-*.tar.gz
+chef_repo-*.tar.gz
+

@@ -18,14 +18,14 @@ namespace :aws do
         knife_opts="--config=#{@knife_config}" if @knife_config
 
         berksfile=File.dirname(__FILE__) + '/../Berksfile'
-        cookbooks_tarball=File.dirname(__FILE__) + '/cookbooks.tar.gz'
+        cookbooks_tarball="#{File.dirname(__FILE__)}/cookbooks-#{@stack_name}.tar.gz"
         sh "berks package -b #{berksfile} #{cookbooks_tarball}"
-        sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{cookbooks_tarball} -r cookbooks.tar.gz"
+        sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{cookbooks_tarball} -r cookbooks-#{@stack_name}.tar.gz"
 
-        chef_repo_tarball=File.dirname(__FILE__) + '/chef_repo.tar.gz'
+        chef_repo_tarball="#{File.dirname(__FILE__)}/chef_repo-#{@stack_name}.tar.gz"
         chef_repo_dir=File.dirname(__FILE__) + '/../chef-repo'
         sh "tar -zcvf #{chef_repo_tarball} -C #{chef_repo_dir} --exclude=cookbooks/ ./"
-        sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{chef_repo_tarball} -r chef_repo.tar.gz"
+        sh "knife s3 #{knife_opts} upload --public -b #{@devops_bucket} -f #{chef_repo_tarball} -r chef_repo-#{@stack_name}.tar.gz"
     end
 
     task :up, [ :snapshot_id ] => [ CLOUDFORMATION_JSON, :upload_repo ] do | t, args |
@@ -35,8 +35,8 @@ namespace :aws do
             :'StackName' => @stack_name,
             :'Description' => "#{@description} (#{@stack_name})",
             :'ImageId' => @image_id,
-            :'ChefRepoURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/chef_repo.tar.gz',
-            :'ChefCookbooksURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
+            :'ChefRepoURL' => "https://#{@devops_bucket}.s3.amazonaws.com/chef_repo-#{@stack_name}.tar.gz",
+            :'ChefCookbooksURL' => "https://#{@devops_bucket}.s3.amazonaws.com/cookbooks-#{@stack_name}.tar.gz",
             :'KeyName' => @key_name,
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
@@ -57,7 +57,8 @@ namespace :aws do
             :'StackName' => @stack_name,
             :'Description' => "#{@description} (#{@stack_name})",
             :'ImageId' => @image_id,
-            :'RecipeURL' => 'https://' + @devops_bucket + '.s3.amazonaws.com/cookbooks.tar.gz',
+            :'ChefRepoURL' => "https://#{@devops_bucket}.s3.amazonaws.com/chef_repo-#{@stack_name}.tar.gz",
+            :'ChefCookbooksURL' => "https://#{@devops_bucket}.s3.amazonaws.com/cookbooks-#{@stack_name}.tar.gz",
             :'KeyName' => @key_name,
             :'AvailabilityZone' => @availability_zone,
             :'ZoneName' => @domain,
